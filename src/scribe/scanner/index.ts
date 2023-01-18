@@ -12,20 +12,20 @@ export default class Scanner implements ScannerImplementation {
 	/**
 	 * Pre calculated digits/alpha characters codes, small optimisation, but everything counts
 	 */
-	private readonly _0 = charCodeAt("0");
-	private readonly _9 = charCodeAt("9");
+	private static readonly _0 = charCodeAt("0");
+	private static readonly _9 = charCodeAt("9");
 
-	private readonly _a = charCodeAt("a");
-	private readonly _A = charCodeAt("A");
-	private readonly _z = charCodeAt("z");
-	private readonly _Z = charCodeAt("Z");
+	private static readonly _a = charCodeAt("a");
+	private static readonly _A = charCodeAt("A");
+	private static readonly _z = charCodeAt("z");
+	private static readonly _Z = charCodeAt("Z");
 
-	private readonly _UNDER_SCORE = charCodeAt("_");
+	private static readonly _under_score = charCodeAt("_");
 
 	constructor(private readonly source: string) {}
 
 	public scanTokens(): Array<Token> {
-		while (!this.isTheEnd()) {
+		while (!this.isEOF()) {
 			this.start = this.current;
 			this.scanToken();
 		}
@@ -39,33 +39,33 @@ export default class Scanner implements ScannerImplementation {
 	 * Scans for tokens at an individual character at a time.
 	 */
 	private scanToken(): void {
-		const char = this.advance();
+		const char = this.step();
 
 		switch (char) {
 			case "#": {
-				while (this.peek() !== "\n" && !this.isTheEnd()) {
-					this.advance(); // We consume the whole line so the comment isn't take in consideration.
+				while (this.peek() !== "\n" && !this.isEOF()) {
+					this.step(); // We consume the whole line so the comment isn't take in consideration.
 				}
 
 				break;
 			}
 
 			case "=": {
-				const tokenType = this.match("=") ? TokenType.E_E : TokenType.EQUAL;
+				const tokenType = this.stepIfMatches("=") ? TokenType.E_E : TokenType.EQUAL;
 				this.addToken(tokenType);
 
 				break;
 			}
 
 			case ">": {
-				const tokenType = this.match("=") ? TokenType.G_E : TokenType.GREATER;
+				const tokenType = this.stepIfMatches("=") ? TokenType.G_E : TokenType.GREATER;
 				this.addToken(tokenType);
 
 				break;
 			}
 
 			case "<": {
-				const tokenType = this.match("=") ? TokenType.L_E : TokenType.LESS;
+				const tokenType = this.stepIfMatches("=") ? TokenType.L_E : TokenType.LESS;
 				this.addToken(tokenType);
 
 				break;
@@ -166,13 +166,13 @@ export default class Scanner implements ScannerImplementation {
 	/**
 	 * Checks if the scanner reached the EOF (end of the file)
 	 */
-	private isTheEnd(): boolean {
+	private isEOF(): boolean {
 		return this.current >= this.source.size();
 	}
 
 	public isDigit(char: string): boolean {
 		const charCode = charCodeAt(char);
-		const evaluation = charCode >= this._0 && charCode <= this._9;
+		const evaluation = charCode >= Scanner._0 && charCode <= Scanner._9;
 
 		return evaluation;
 	}
@@ -181,9 +181,9 @@ export default class Scanner implements ScannerImplementation {
 		const charCode = charCodeAt(char);
 		let evaluation;
 		{
-			const isaToz = charCode >= this._a && charCode <= this._z;
-			const isAtoZ = charCode >= this._A && charCode <= this._Z;
-			const isUnderscore = charCode === this._UNDER_SCORE;
+			const isaToz = charCode >= Scanner._a && charCode <= Scanner._z;
+			const isAtoZ = charCode >= Scanner._A && charCode <= Scanner._Z;
+			const isUnderscore = charCode === Scanner._under_score;
 
 			evaluation = isaToz || isAtoZ || isUnderscore;
 		}
@@ -198,8 +198,8 @@ export default class Scanner implements ScannerImplementation {
 	/**
 	 * Advances one character and consumes it, ONLY and ONLY IF it matches whatever we pass to it.
 	 */
-	private match(charExpected: string): boolean {
-		if (this.isTheEnd() || charAt(this.source, this.current) !== charExpected) {
+	private stepIfMatches(charExpected: string): boolean {
+		if (this.isEOF() || charAt(this.source, this.current) !== charExpected) {
 			return false;
 		}
 
@@ -211,17 +211,17 @@ export default class Scanner implements ScannerImplementation {
 	/**
 	 * Advances to the next character and consumes it.
 	 */
-	private advance(): string {
+	private step(): string {
 		return charAt(this.source, this.current++);
 	}
 
 	/**
-	 * Looks at the current unconsumed character.
+	 * Looks at the current unconsumed character within a set of lookahead.
 	 */
 	private peek(nOfLookahead?: number): string {
 		nOfLookahead = nOfLookahead !== undefined ? nOfLookahead : 0;
 
-		if (this.isTheEnd() || this.current + nOfLookahead - 1 >= this.source.size()) {
+		if (this.isEOF() || this.current + nOfLookahead - 1 >= this.source.size()) {
 			return "\0";
 		}
 
@@ -234,43 +234,39 @@ export default class Scanner implements ScannerImplementation {
 	private string(enclosingChar: string): void {
 		let lookAhead = this.peek();
 
-		while (lookAhead !== enclosingChar && !this.isTheEnd()) {
+		while (lookAhead !== enclosingChar && !this.isEOF()) {
 			if (lookAhead === "\n") {
 				this.line++;
 			}
 
-			this.advance();
+			this.step();
 			lookAhead = this.peek();
 		}
 
-		this.advance(); // To consume the closing quotation
+		this.step(); // To consume the closing quotation
 
-		const str = this.source.sub(this.start + 1, this.current - 2);
-		this.addToken(TokenType.STR, str);
+		const string = this.source.sub(this.start + 1, this.current - 2);
+		this.addToken(TokenType.STR, string);
 	}
 
 	/**
 	 * Adds a new number literal
 	 */
 	private number(): void {
-		this.consumeNumber();
+		while (this.isDigit(this.peek())) {
+			this.step();
+		}
 
 		if (this.peek() === "." && this.isDigit(this.peek(1))) {
-			this.advance();
-			this.consumeNumber();
+			this.step();
+
+			while (this.isDigit(this.peek())) {
+				this.step();
+			}
 		}
 
-		const num = tonumber(this.source.sub(this.start, this.current));
-		this.addToken(TokenType.NUM, num);
-	}
-
-	/**
-	 * Helps to consume a whole line while it is a digit
-	 */
-	private consumeNumber(): void {
-		while (this.isDigit(this.peek())) {
-			this.advance();
-		}
+		const number = tonumber(this.source.sub(this.start, this.current));
+		this.addToken(TokenType.NUM, number);
 	}
 
 	/**
@@ -278,7 +274,7 @@ export default class Scanner implements ScannerImplementation {
 	 */
 	private identifier(): void {
 		while (this.isAlphaNumeric(this.peek())) {
-			this.advance();
+			this.step();
 		}
 
 		const identifier = this.source.sub(this.start, this.current - 1);

@@ -12,7 +12,6 @@ export enum TokenType {
 	R_BK = "Right_Bracket", // ] (for arrays)
 
 	// Single character tokens (operators, etc)
-	// DOT = "Dot",
 	MINUS = "Minus",
 	PLUS = "Plus",
 	SLASH = "Slash",
@@ -40,14 +39,13 @@ export enum TokenType {
 	OR = "Or",
 	NOT = "Not",
 	IF = "If",
-	ELSE = "Else",
 	TRUE = "True",
 	FALSE = "False",
 	OBJECTIVE = "Objective",
 	SCORE = "Score",
 	INTERACT = "Interact",
 	SCENE = "Scene",
-	CHOICE = "Choice",
+	WITH = "With",
 	OPTION = "Option",
 	OTHERWISE = "Otherwise",
 	ACTOR = "actor",
@@ -63,20 +61,19 @@ export const Keywords: KeywordsType = {
 	or: TokenType.OR,
 	not: TokenType.NOT,
 	if: TokenType.IF,
-	else: TokenType.ELSE,
 	true: TokenType.TRUE,
 	false: TokenType.FALSE,
 	objective: TokenType.OBJECTIVE,
 	score: TokenType.SCORE,
 	interact: TokenType.INTERACT,
 	scene: TokenType.SCENE,
-	choice: TokenType.CHOICE,
 	option: TokenType.OPTION,
 	otherwise: TokenType.OTHERWISE,
 	actor: TokenType.ACTOR,
 	property: TokenType.PROPERTY,
 	start: TokenType.START,
 	exit: TokenType.EXIT,
+	with: TokenType.WITH,
 };
 
 export const Symbols: TokensSymbols = {
@@ -86,7 +83,6 @@ export const Symbols: TokensSymbols = {
 	"}": TokenType.R_B,
 	"[": TokenType.L_BK,
 	"]": TokenType.R_BK,
-	// ".": TokenType.DOT,
 	"-": TokenType.MINUS,
 	"+": TokenType.PLUS,
 	"/": TokenType.SLASH,
