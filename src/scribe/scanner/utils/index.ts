@@ -29,10 +29,13 @@ export enum TokenType {
 	G_E = "Greater_Equal",
 	L_E = "Less_Equal",
 
+	CONTINUE = "Continue",
+	COLON = "Colon",
+
 	// Literals supported
-	ID = "Identifier", // anything that Scribe doesn't detect as a lexem being part of the language
-	STR = "String",
-	NUM = "Number",
+	IDENTIFIER = "Identifier",
+	STRING = "String",
+	NUMBER = "Number",
 
 	// Keywords
 	AND = "And",
@@ -42,7 +45,9 @@ export enum TokenType {
 	TRUE = "True",
 	FALSE = "False",
 	OBJECTIVE = "Objective",
-	SCORE = "Score",
+	START = "Start",
+	STORE = "Score",
+	SET = "Set",
 	INTERACT = "Interact",
 	SCENE = "Scene",
 	WITH = "With",
@@ -50,7 +55,7 @@ export enum TokenType {
 	OTHERWISE = "Otherwise",
 	ACTOR = "actor",
 	PROPERTY = "Property",
-	START = "Start",
+	TRIGGER = "Trigger",
 	EXIT = "Exit",
 
 	EOF = "End_of_file", // this is kinda necessary at the moment to tell the tokenizer when the end has been reached
@@ -64,16 +69,18 @@ export const Keywords: KeywordsType = {
 	true: TokenType.TRUE,
 	false: TokenType.FALSE,
 	objective: TokenType.OBJECTIVE,
-	score: TokenType.SCORE,
+	start: TokenType.START,
+	store: TokenType.STORE,
+	set: TokenType.SET,
 	interact: TokenType.INTERACT,
 	scene: TokenType.SCENE,
+	with: TokenType.WITH,
 	option: TokenType.OPTION,
 	otherwise: TokenType.OTHERWISE,
 	actor: TokenType.ACTOR,
 	property: TokenType.PROPERTY,
-	start: TokenType.START,
+	trigger: TokenType.TRIGGER,
 	exit: TokenType.EXIT,
-	with: TokenType.WITH,
 };
 
 export const Symbols: TokensSymbols = {
@@ -83,11 +90,11 @@ export const Symbols: TokensSymbols = {
 	"}": TokenType.R_B,
 	"[": TokenType.L_BK,
 	"]": TokenType.R_BK,
-	"-": TokenType.MINUS,
 	"+": TokenType.PLUS,
 	"/": TokenType.SLASH,
 	"*": TokenType.STAR,
 	",": TokenType.COMMA,
+	":": TokenType.COLON,
 };
 
 /**

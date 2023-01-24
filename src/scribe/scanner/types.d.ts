@@ -6,6 +6,13 @@ export declare type Token = {
 	type: TokenType;
 	lexeme: string | undefined;
 	literal: TokenLiteral;
+
+	/**
+	 * Debugging purposes
+	 */
+	line: number;
+	start: number;
+	end: number;
 };
 
 export interface ScannerImplementation {

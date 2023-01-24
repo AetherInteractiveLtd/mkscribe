@@ -30,7 +30,7 @@ export default class Scanner implements ScannerImplementation {
 			this.scanToken();
 		}
 
-		this.tokens.push(this.createToken(TokenType.EOF, "", undefined)); // The end of the file has been reached
+		this.tokens.push(this.createToken(TokenType.EOF, "", undefined, this.start, this.source.size())); // The end of the file has been reached
 
 		return this.tokens;
 	}
@@ -46,6 +46,13 @@ export default class Scanner implements ScannerImplementation {
 				while (this.peek() !== "\n" && !this.isEOF()) {
 					this.step(); // We consume the whole line so the comment isn't take in consideration.
 				}
+
+				break;
+			}
+
+			case "-": {
+				const tokentype = this.stepIfMatches(">") ? TokenType.CONTINUE : TokenType.MINUS;
+				this.addToken(tokentype);
 
 				break;
 			}
@@ -132,12 +139,24 @@ export default class Scanner implements ScannerImplementation {
 	 * @param type of TokenType type.
 	 * @param literal of TokenLiteral type.
 	 * @param lexeme of string type, describing the lexeme it is.
+	 * @param start of the lexeme.
+	 * @param _end of the lexeme.
 	 */
-	private createToken(tokenType: TokenType, literal: TokenLiteral, lexeme: string | undefined): Token {
+	private createToken(
+		tokenType: TokenType,
+		literal: TokenLiteral,
+		lexeme: string | undefined,
+		start: number,
+		_end: number,
+	): Token {
 		return {
 			type: tokenType,
 			literal,
 			lexeme,
+
+			line: this.line,
+			start,
+			end: _end,
 		};
 	}
 
@@ -157,10 +176,11 @@ export default class Scanner implements ScannerImplementation {
 	private addToken(tokenType: TokenType, literal: TokenLiteral): void;
 
 	private addToken(tokenType: unknown, literal?: unknown): void {
-		literal = literal === undefined ? undefined : literal;
-		const lexeme = this.source.sub(this.start, this.current - (this.current >= this.source.size() ? 0 : 1));
+		const start = this.start;
+		const current = this.current - (this.current >= this.source.size() ? 0 : 1);
+		const lexeme = this.source.sub(start, current);
 
-		this.tokens.push(this.createToken(tokenType as TokenType, literal as TokenLiteral, lexeme));
+		this.tokens.push(this.createToken(tokenType as TokenType, literal as TokenLiteral, lexeme, start, current));
 	}
 
 	/**
@@ -245,8 +265,8 @@ export default class Scanner implements ScannerImplementation {
 
 		this.step(); // To consume the closing quotation
 
-		const string = this.source.sub(this.start + 1, this.current - 2);
-		this.addToken(TokenType.STR, string);
+		const _string = this.source.sub(this.start + 1, this.current - 2);
+		this.addToken(TokenType.STRING, _string);
 	}
 
 	/**
@@ -266,7 +286,7 @@ export default class Scanner implements ScannerImplementation {
 		}
 
 		const number = tonumber(this.source.sub(this.start, this.current));
-		this.addToken(TokenType.NUM, number);
+		this.addToken(TokenType.NUMBER, number);
 	}
 
 	/**
@@ -282,7 +302,7 @@ export default class Scanner implements ScannerImplementation {
 		if (identifier in Keywords) {
 			this.addToken(Keywords[identifier as keyof KeywordsType]);
 		} else {
-			this.addToken(TokenType.ID);
+			this.addToken(TokenType.IDENTIFIER);
 		}
 	}
 }

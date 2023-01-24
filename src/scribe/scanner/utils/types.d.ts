@@ -8,7 +8,9 @@ declare type KeywordStrings =
 	| "true"
 	| "false"
 	| "objective"
-	| "score"
+	| "start"
+	| "store"
+	| "set"
 	| "interact"
 	| "scene"
 	| "with"
@@ -16,11 +18,11 @@ declare type KeywordStrings =
 	| "otherwise"
 	| "actor"
 	| "property"
-	| "start"
+	| "trigger"
 	| "exit";
 
 export declare type KeywordsType = Record<KeywordStrings, TokenType>;
 
-declare type TokensSymbolsString = "(" | ")" | "{" | "}" | "[" | "]" | "-" | "+" | "/" | "*" | ",";
+declare type TokensSymbolsString = "(" | ")" | "{" | "}" | "[" | "]" | "+" | "/" | "*" | "," | ":";
 
 export declare type TokensSymbols = Record<TokensSymbolsString, TokenType>;
