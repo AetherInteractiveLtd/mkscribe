@@ -1,2 +1,0 @@
-# scribe
-Scribe. 🦀
