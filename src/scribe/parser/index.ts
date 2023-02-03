@@ -5,6 +5,7 @@ import {
 	BlockOfConditionsStatement,
 	BlockStatement,
 	ConditionStatement,
+	ExitExpression,
 	Expression,
 	ExpressionStatement,
 	GroupingExpression,
@@ -24,7 +25,7 @@ import {
 	UnaryExpression,
 	VariableExpression,
 } from "../ast/types";
-import { Token } from "../scanner/types";
+import { LiteralType, Token } from "../scanner/types";
 import { TokenType } from "../scanner/utils";
 import { ParserImplementation } from "./types";
 
@@ -308,28 +309,11 @@ export class Parser implements ParserImplementation {
 	 * @returns a LiteralExpression
 	 */
 	private literal(): LiteralExpression {
-		let value = this.previous();
-
-		switch (value.lexeme) {
-			case "false": {
-				value = false as never;
-
-				break;
-			}
-
-			case "true": {
-				value = true as never;
-
-				break;
-			}
-
-			default: {
-				value = value.literal as never;
-			}
-		}
+		const value = this.previous();
 
 		return newExpression(ExpressionType.LITERAL, {
 			value: value as never, // Wonky workaround, but still, pretty valid and useful
+			literalType: value.literalType as LiteralType,
 		});
 	}
 
@@ -421,6 +405,19 @@ export class Parser implements ParserImplementation {
 		});
 	}
 
+	/**
+	 * Constructs a new ExitExpression.
+	 *
+	 * @returns an ExitExpression
+	 */
+	private exit(): ExitExpression {
+		const data = this.express();
+
+		return newExpression(ExpressionType.EXIT, {
+			data,
+		});
+	}
+
 	/** Statements */
 
 	/**
@@ -478,15 +475,12 @@ export class Parser implements ParserImplementation {
 		const name = this.consume(TokenType.IDENTIFIER, "Expected a store name.");
 
 		let metadata: Expression | undefined;
-		let value: Expression | undefined;
 
 		if (this.match(TokenType.L_P)) {
 			metadata = this.metadata();
 		}
 
-		if (this.matches(TokenType.STRING, TokenType.NUMBER, TokenType.TRUE, TokenType.FALSE)) {
-			value = this.express();
-		}
+		const value = this.express();
 
 		return newStatement(StatementType.STORE, {
 			name,
@@ -524,12 +518,7 @@ export class Parser implements ParserImplementation {
 	 */
 	private set(): SetStatement {
 		const name = this.consume(TokenType.IDENTIFIER, "Expected a store identifier to modify its value.");
-
-		let value: Expression | undefined;
-
-		if (this.matches(TokenType.STRING, TokenType.NUMBER, TokenType.TRUE, TokenType.FALSE)) {
-			value = this.express();
-		}
+		const value = this.express();
 
 		return newStatement(StatementType.SET, {
 			name,
@@ -603,9 +592,8 @@ export class Parser implements ParserImplementation {
 		let condition: Expression | undefined;
 		let body: BlockStatement | BlockOfConditionsStatement;
 
-		if (this.matches(TokenType.STRING, TokenType.NUMBER, TokenType.TRUE, TokenType.FALSE, TokenType.IDENTIFIER)) {
-			condition = this.express();
-		}
+		// eslint-disable-next-line prefer-const
+		condition = this.express();
 
 		if (condition !== undefined) {
 			this.consume(TokenType.CONTINUE, `Expected "->" after if's condition.`);
@@ -650,9 +638,8 @@ export class Parser implements ParserImplementation {
 		let value: Expression | undefined;
 		let metadata: Expression | undefined;
 
-		if (this.matches(TokenType.STRING, TokenType.NUMBER, TokenType.TRUE, TokenType.FALSE, TokenType.IDENTIFIER)) {
-			value = this.express();
-		}
+		// eslint-disable-next-line prefer-const
+		value = this.express();
 
 		if (this.match(TokenType.L_P)) {
 			metadata = this.metadata();
@@ -676,11 +663,14 @@ export class Parser implements ParserImplementation {
 	 */
 	private trigger(): TriggerStatement {
 		let values: Expression;
+		let _type: "array" | "single";
 
 		if (this.match(TokenType.L_BK)) {
 			values = this.array();
+			_type = "array";
 		} else {
 			values = this.express();
+			_type = "single";
 		}
 
 		this.consume(TokenType.L_B, `Expected "{" to start the trigger's body.`);
@@ -690,6 +680,7 @@ export class Parser implements ParserImplementation {
 		return newStatement(StatementType.TRIGGER, {
 			values,
 			body,
+			_type,
 		});
 	}
 

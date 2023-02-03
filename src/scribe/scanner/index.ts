@@ -1,4 +1,4 @@
-import { ScannerImplementation, Token, TokenLiteral } from "./types";
+import { LiteralType, ScannerImplementation, Token, TokenLiteral } from "./types";
 import { charAt, charCodeAt, Keywords, Symbols, TokenType } from "./utils";
 import { KeywordsType, TokensSymbols } from "./utils/types";
 
@@ -30,7 +30,7 @@ export default class Scanner implements ScannerImplementation {
 			this.scanToken();
 		}
 
-		this.tokens.push(this.createToken(TokenType.EOF, "", undefined, this.start, this.source.size())); // The end of the file has been reached
+		this.tokens.push(this.createToken(TokenType.EOF, "", undefined, "undefined", this.start, this.source.size()));
 
 		return this.tokens;
 	}
@@ -137,22 +137,25 @@ export default class Scanner implements ScannerImplementation {
 	 * Creates a new token, really just an utility function.
 	 *
 	 * @param type of TokenType type.
-	 * @param literal of TokenLiteral type.
 	 * @param lexeme of string type, describing the lexeme it is.
+	 * @param literal of TokenLiteral type.
+	 * @param literalType of string type (optional).
 	 * @param start of the lexeme.
 	 * @param _end of the lexeme.
 	 */
 	private createToken(
 		tokenType: TokenType,
-		literal: TokenLiteral,
 		lexeme: string | undefined,
+		literal: TokenLiteral,
+		literalType: LiteralType,
 		start: number,
 		_end: number,
 	): Token {
 		return {
 			type: tokenType,
-			literal,
 			lexeme,
+			literal,
+			literalType: literalType || "undefined",
 
 			line: this.line,
 			start,
@@ -172,15 +175,25 @@ export default class Scanner implements ScannerImplementation {
 	 *
 	 * @param tokenType of TokenType type.
 	 * @param literal of TokenLiteral type.
+	 * @param literalType of string type.
 	 */
-	private addToken(tokenType: TokenType, literal: TokenLiteral): void;
+	private addToken(tokenType: TokenType, literal: TokenLiteral, literalType: LiteralType): void;
 
-	private addToken(tokenType: unknown, literal?: unknown): void {
+	private addToken(tokenType: unknown, literal?: unknown, literalType?: unknown): void {
 		const start = this.start;
 		const current = this.current - (this.current >= this.source.size() ? 0 : 1);
 		const lexeme = this.source.sub(start, current);
 
-		this.tokens.push(this.createToken(tokenType as TokenType, literal as TokenLiteral, lexeme, start, current));
+		this.tokens.push(
+			this.createToken(
+				tokenType as TokenType,
+				lexeme,
+				literal as TokenLiteral,
+				literalType as LiteralType,
+				start,
+				current,
+			),
+		);
 	}
 
 	/**
@@ -266,7 +279,7 @@ export default class Scanner implements ScannerImplementation {
 		this.step(); // To consume the closing quotation
 
 		const _string = this.source.sub(this.start + 1, this.current - 2);
-		this.addToken(TokenType.STRING, _string);
+		this.addToken(TokenType.STRING, _string, "string");
 	}
 
 	/**
@@ -286,7 +299,7 @@ export default class Scanner implements ScannerImplementation {
 		}
 
 		const number = tonumber(this.source.sub(this.start, this.current));
-		this.addToken(TokenType.NUMBER, number);
+		this.addToken(TokenType.NUMBER, number, "number");
 	}
 
 	/**
@@ -300,6 +313,12 @@ export default class Scanner implements ScannerImplementation {
 		const identifier = this.source.sub(this.start, this.current - 1);
 
 		if (identifier in Keywords) {
+			if (identifier === "true") {
+				return this.addToken(Keywords[identifier as keyof KeywordsType], true, "boolean");
+			} else if (identifier === "false") {
+				return this.addToken(Keywords[identifier as keyof KeywordsType], false, "boolean");
+			}
+
 			this.addToken(Keywords[identifier as keyof KeywordsType]);
 		} else {
 			this.addToken(TokenType.IDENTIFIER);

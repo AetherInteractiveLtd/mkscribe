@@ -11,6 +11,7 @@ export enum ExpressionType {
 	ARRAY = "ArrayExpression",
 	METADATA = "MetadataExpression",
 	START = "StartExpression",
+	EXIT = "ExitExpression",
 }
 
 export enum StatementType {

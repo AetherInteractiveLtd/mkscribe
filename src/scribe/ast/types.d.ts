@@ -1,5 +1,5 @@
 import { ExpressionType, StatementType } from ".";
-import { Token, TokenLiteral } from "../scanner/types";
+import { LiteralType, Token, TokenLiteral } from "../scanner/types";
 
 /** Expressions */
 
@@ -45,6 +45,7 @@ interface LiteralExpression extends Expression {
 	 * VALUE
 	 */
 	value: TokenLiteral;
+	literalType: LiteralType;
 }
 
 interface GroupingExpression extends Expression {
@@ -78,6 +79,13 @@ interface MetadataExpression extends Expression {
 	args: Array<Expression>;
 }
 
+interface ExitExpression extends Expression {
+	/**
+	 * Can be any expression, an array or whatever.
+	 */
+	data?: Expression | undefined;
+}
+
 export interface Expressions {
 	BinaryExpression: BinaryExpression;
 	UnaryExpression: UnaryExpression;
@@ -89,6 +97,7 @@ export interface Expressions {
 	ArrayExpression: ArrayExpression;
 	MetadataExpression: MetadataExpression;
 	StartExpression: StartExpression;
+	ExitExpression: ExitExpression;
 }
 
 export interface Expression {
@@ -105,6 +114,7 @@ export interface ExpressionVisitor<R> {
 	visitLiteralExpression(expr: LiteralExpression): R;
 	visitGroupingExpression(expr: GroupingExpression): R;
 	visitMetadataExpression(expr: MetadataExpression): R;
+	visitArrayExpression(expr: ArrayExpression): R;
 	visitStartExpression(expr: StartExpression): R;
 }
 
@@ -219,6 +229,7 @@ interface TriggerStatement extends Statement {
 	 */
 	values: Expression;
 	body: Statement;
+	_type: "array" | "single";
 }
 
 export interface Statements {
@@ -242,10 +253,14 @@ export interface Statement {
 
 export interface StatementVisitor<R> {
 	visitExpressionStatement(stmt: ExpressionStatement): R;
-	visitVariableStatement(stmt: StoreStatement): R;
+	visitStoreStatement(stmt: StoreStatement): R;
+	visitObjectiveStatement(stmt: ObjectiveStatement): R;
 	visitBlockStatement(stmt: BlockStatement): R;
+	visitBlockOfConditionsStatement(stmt: BlockOfConditionsStatement): R;
+	visitConditionStatement(stmt: ConditionStatement): R;
 	visitIfStatement(stmt: IfStatement): R;
 	visitSceneStatement(stmt: SceneStatement): R;
+	visitSetStatement(stmt: SetStatement): R;
 	visitOptionStatement(stmt: OptionStatement): R;
 	visitTriggerStatement(stmt: TriggerStatement): R;
 }
