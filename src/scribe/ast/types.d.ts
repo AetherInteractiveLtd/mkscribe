@@ -1,5 +1,5 @@
 import { ExpressionType, StatementType } from ".";
-import { Token, TokenLiteral } from "../scanner/types";
+import { LiteralType, Token, TokenLiteral } from "../scanner/types";
 
 /** Expressions */
 
@@ -7,7 +7,7 @@ interface BinaryExpression extends Expression {
 	/**
 	 * left (operator) right
 	 *
-	 * operators: [+, *, -, /]
+	 * operators: [+, *, -, /, >, <, >=, <=, ==]
 	 */
 	left: Expression;
 	operator: Token;
@@ -32,12 +32,11 @@ interface VariableExpression extends Expression {
 	name: Token;
 }
 
-interface LogicalExpression extends BinaryExpression {
+interface EnviromentAccessor extends Expression {
 	/**
-	 * left (operator) right
-	 *
-	 * operators: [>, <, >=, <=, ==]
+	 * $VARIABLE (accessing)
 	 */
+	name: Token;
 }
 
 interface LiteralExpression extends Expression {
@@ -45,6 +44,7 @@ interface LiteralExpression extends Expression {
 	 * VALUE
 	 */
 	value: TokenLiteral;
+	dataType: LiteralType;
 }
 
 interface GroupingExpression extends Expression {
@@ -83,7 +83,7 @@ export interface Expressions {
 	UnaryExpression: UnaryExpression;
 	TernaryExpression: TernaryExpression;
 	VariableExpression: VariableExpression;
-	LogicalExpression: LogicalExpression;
+	EnviromentAccessor: EnviromentAccessor;
 	LiteralExpression: LiteralExpression;
 	GroupingExpression: GroupingExpression;
 	ArrayExpression: ArrayExpression;
@@ -101,7 +101,7 @@ export interface ExpressionVisitor<R> {
 	visitUnaryExpression(expr: UnaryExpression): R;
 	visitTernaryExpression(expr: TernaryExpression): R;
 	visitVariableExpression(expr: VariableExpression): R;
-	visitLogicalExpression(expr: LogicalExpression): R;
+	visitEnviromentAccessor(expr: EnviromentAccessor): R;
 	visitLiteralExpression(expr: LiteralExpression): R;
 	visitGroupingExpression(expr: GroupingExpression): R;
 	visitMetadataExpression(expr: MetadataExpression): R;
@@ -115,6 +115,14 @@ interface ExpressionStatement extends Statement {
 	 * Whatever an expression may be
 	 */
 	expr: Expression;
+}
+
+interface PropertyStatement extends Statement {
+	/**
+	 * property name (metadata_optional) "Property value"
+	 */
+	name: Token;
+	value: Expression;
 }
 
 interface StoreStatement extends Statement {
@@ -223,6 +231,7 @@ interface TriggerStatement extends Statement {
 
 export interface Statements {
 	ExpressionStatement: ExpressionStatement;
+	PropertyStatement: PropertyStatement;
 	StoreStatement: StoreStatement;
 	ObjectiveStatement: ObjectiveStatement;
 	SetStatement: SetStatement;
@@ -242,8 +251,13 @@ export interface Statement {
 
 export interface StatementVisitor<R> {
 	visitExpressionStatement(stmt: ExpressionStatement): R;
-	visitVariableStatement(stmt: StoreStatement): R;
+	visitPropertyStatement(stmt: ExpressionStatement): R;
+	visitObjectiveStatement(stmt: ObjectiveStatement): R;
+	visitStoreStatement(stmt: StoreStatement): R;
+	visitSetStatement(stmt: SetStatement): R;
 	visitBlockStatement(stmt: BlockStatement): R;
+	visitBlockOfConditionsStatement(stmt: BlockOfConditionsStatement): R;
+	visitConditionStatement(stmt: ConditionStatement): R;
 	visitIfStatement(stmt: IfStatement): R;
 	visitSceneStatement(stmt: SceneStatement): R;
 	visitOptionStatement(stmt: OptionStatement): R;

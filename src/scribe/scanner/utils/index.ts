@@ -58,6 +58,9 @@ export enum TokenType {
 	TRIGGER = "Trigger",
 	EXIT = "Exit",
 
+	// Special characters
+	ENV = "EnviromentAccessor",
+
 	EOF = "End_of_file", // this is kinda necessary at the moment to tell the tokenizer when the end has been reached
 }
 

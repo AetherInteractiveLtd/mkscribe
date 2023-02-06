@@ -5,7 +5,7 @@ export enum ExpressionType {
 	UNARY = "UnaryExpression",
 	TERNARY = "TernaryExpression",
 	VARIABLE = "VariableExpression",
-	LOGICAL = "LogicalExpression",
+	ENV = "EnviromentAccessor",
 	LITERAL = "LiteralExpression",
 	GROUPING = "GroupingExpression",
 	ARRAY = "ArrayExpression",
@@ -15,6 +15,7 @@ export enum ExpressionType {
 
 export enum StatementType {
 	EXPRESSION_STATEMENT = "ExpressionStatement",
+	PROPERTY = "PropertyStatement",
 	STORE = "StoreStatement",
 	OBJECTIVE = "ObjectiveStatement",
 	SET = "SetStatement",
