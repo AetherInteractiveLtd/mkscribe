@@ -1,7 +1,7 @@
 import { TokenType } from "./utils";
 
 export declare type TokenLiteral = string | number | boolean | undefined | Array<unknown>;
-export declare type LiteralType = "string" | "boolean" | "number" | "undefined";
+export declare type LiteralType = "string" | "boolean" | "number" | "seconds" | "undefined";
 
 export declare type Token = {
 	type: TokenType;

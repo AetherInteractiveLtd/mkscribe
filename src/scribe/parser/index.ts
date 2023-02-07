@@ -170,7 +170,7 @@ export class Parser implements ParserImplementation {
 	}
 
 	private primary(): Expression {
-		if (this.matches(TokenType.STRING, TokenType.NUMBER, TokenType.FALSE, TokenType.TRUE)) {
+		if (this.matches(TokenType.STRING, TokenType.NUMBER, TokenType.FALSE, TokenType.TRUE, TokenType.SECONDS)) {
 			return this.literal();
 		}
 

@@ -34,6 +34,7 @@ export enum TokenType {
 
 	// Literals supported
 	IDENTIFIER = "Identifier",
+	SECONDS = "Seconds",
 	STRING = "String",
 	NUMBER = "Number",
 

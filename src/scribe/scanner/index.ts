@@ -303,6 +303,9 @@ export default class Scanner implements ScannerImplementation {
 	 * Adds a new number literal
 	 */
 	private number(): void {
+		let _type: TokenType;
+		let _dataType: LiteralType;
+
 		while (this.isDigit(this.peek())) {
 			this.step();
 		}
@@ -315,8 +318,18 @@ export default class Scanner implements ScannerImplementation {
 			}
 		}
 
-		const number = tonumber(this.source.sub(this.start, this.current));
-		this.addToken(TokenType.NUMBER, number, "number");
+		if (this.peek() === "s") {
+			this.step(); // Consume the 's'
+
+			_type = TokenType.SECONDS;
+			_dataType = "seconds";
+		} else {
+			_type = TokenType.NUMBER;
+			_dataType = "number";
+		}
+
+		const number = this.source.sub(this.start, this.current - 1);
+		this.addToken(_type, number, _dataType);
 	}
 
 	/**
