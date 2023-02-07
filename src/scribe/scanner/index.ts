@@ -1,4 +1,4 @@
-import { LiteralType, ScannerImplementation, Token, TokenLiteral } from "./types";
+import { TokenLiteralType, ScannerImplementation, Token, TokenLiteral } from "./types";
 import { charAt, charCodeAt, Keywords, Symbols, TokenType } from "./utils";
 import { KeywordsType, TokensSymbols } from "./utils/types";
 
@@ -151,7 +151,7 @@ export default class Scanner implements ScannerImplementation {
 	private createToken(
 		tokenType: TokenType,
 		literal: TokenLiteral,
-		_data_type: LiteralType,
+		_data_type: TokenLiteralType,
 		lexeme: string | undefined,
 		start: number,
 		_end: number,
@@ -181,9 +181,9 @@ export default class Scanner implements ScannerImplementation {
 	 * @param tokenType of TokenType type.
 	 * @param literal of TokenLiteral type.
 	 */
-	private addToken(tokenType: TokenType, literal: TokenLiteral, literalType: LiteralType): void;
+	private addToken(tokenType: TokenType, literal: TokenLiteral, literalType: TokenLiteralType): void;
 
-	private addToken(tokenType: unknown, literal?: unknown, literalType?: LiteralType): void {
+	private addToken(tokenType: unknown, literal?: unknown, literalType?: TokenLiteralType): void {
 		const start = this.start;
 		const current = this.current - (this.current >= this.source.size() ? 0 : 1);
 		const lexeme = this.source.sub(start, current);
@@ -304,7 +304,7 @@ export default class Scanner implements ScannerImplementation {
 	 */
 	private number(): void {
 		let _type: TokenType;
-		let _dataType: LiteralType;
+		let _dataType: TokenLiteralType;
 
 		while (this.isDigit(this.peek())) {
 			this.step();

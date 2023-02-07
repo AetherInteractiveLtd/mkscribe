@@ -1,5 +1,5 @@
 import { ExpressionType, StatementType } from ".";
-import { LiteralType, Token, TokenLiteral } from "../scanner/types";
+import { TokenLiteralType, Token, TokenLiteral } from "../scanner/types";
 
 /** Expressions */
 
@@ -44,7 +44,7 @@ interface LiteralExpression extends Expression {
 	 * VALUE
 	 */
 	value: TokenLiteral;
-	dataType: LiteralType;
+	dataType: TokenLiteralType;
 }
 
 interface GroupingExpression extends Expression {
