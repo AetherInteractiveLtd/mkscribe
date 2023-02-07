@@ -125,6 +125,23 @@ interface PropertyStatement extends Statement {
 	value: Expression;
 }
 
+interface ActorStatement extends Statement {
+	/**
+	 * actor IDENTIFIER
+	 */
+	name: Token;
+}
+
+interface DialogueStatement extends Statement {
+	/**
+	 * [IDENTIFIER] "Dialogue" (metadata_optional) with { ...options }
+	 */
+	actor: Token;
+	text: Expression;
+	metadata: Expression | undefined;
+	options: Statement | undefined;
+}
+
 interface StoreStatement extends Statement {
 	/**
 	 * store NAME (metadata_optional) "Optional value!"
@@ -232,11 +249,13 @@ interface TriggerStatement extends Statement {
 export interface Statements {
 	ExpressionStatement: ExpressionStatement;
 	PropertyStatement: PropertyStatement;
+	ActorStatement: ActorStatement;
 	StoreStatement: StoreStatement;
 	ObjectiveStatement: ObjectiveStatement;
 	SetStatement: SetStatement;
 	BlockStatement: BlockStatement;
 	BlockOfConditionsStatement: BlockOfConditionsStatement;
+	DialogueStatement: DialogueStatement;
 	ConditionStatement: ConditionStatement;
 	IfStatement: IfStatement;
 	SceneStatement: SceneStatement;
@@ -252,11 +271,13 @@ export interface Statement {
 export interface StatementVisitor<R> {
 	visitExpressionStatement(stmt: ExpressionStatement): R;
 	visitPropertyStatement(stmt: ExpressionStatement): R;
+	visitActorStatement(stmt: ActorStatement): R;
 	visitObjectiveStatement(stmt: ObjectiveStatement): R;
 	visitStoreStatement(stmt: StoreStatement): R;
 	visitSetStatement(stmt: SetStatement): R;
 	visitBlockStatement(stmt: BlockStatement): R;
 	visitBlockOfConditionsStatement(stmt: BlockOfConditionsStatement): R;
+	visitDialogueStatement(stmt: DialogueStatement): R;
 	visitConditionStatement(stmt: ConditionStatement): R;
 	visitIfStatement(stmt: IfStatement): R;
 	visitSceneStatement(stmt: SceneStatement): R;

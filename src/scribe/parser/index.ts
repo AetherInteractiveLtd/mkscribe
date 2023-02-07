@@ -1,10 +1,12 @@
 import { newExpression, newStatement, ExpressionType, StatementType } from "../ast";
 import {
+	ActorStatement,
 	ArrayExpression,
 	BinaryExpression,
 	BlockOfConditionsStatement,
 	BlockStatement,
 	ConditionStatement,
+	DialogueStatement,
 	EnviromentAccessor,
 	Expression,
 	ExpressionStatement,
@@ -296,7 +298,7 @@ export class Parser implements ParserImplementation {
 	/** Statements */
 
 	private declare(): Statement {
-		if (this.isType(TokenType.PROPERTY, TokenType.OBJECTIVE, TokenType.STORE)) {
+		if (this.isType(TokenType.PROPERTY, TokenType.OBJECTIVE, TokenType.STORE, TokenType.ACTOR)) {
 			if (this.match(TokenType.PROPERTY)) {
 				return this.declaration(StatementType.PROPERTY);
 			}
@@ -308,6 +310,10 @@ export class Parser implements ParserImplementation {
 			if (this.match(TokenType.STORE)) {
 				return this.declaration(StatementType.STORE, true);
 			}
+		}
+
+		if (this.match(TokenType.ACTOR)) {
+			return this.actor();
 		}
 
 		return this.statement();
@@ -334,6 +340,10 @@ export class Parser implements ParserImplementation {
 			return this.declaration(StatementType.SET);
 		}
 
+		if (this.match(TokenType.L_BK)) {
+			return this.dialogue();
+		}
+
 		return this.expressionStatement();
 	}
 
@@ -351,6 +361,12 @@ export class Parser implements ParserImplementation {
 		value = this.express();
 
 		return newStatement(_type, { name, value, metadata } as never);
+	}
+
+	private actor(): ActorStatement {
+		return newStatement(StatementType.ACTOR, {
+			name: this.consume(TokenType.IDENTIFIER, `Expected an identifier for an Actor.`),
+		});
 	}
 
 	private block(): BlockStatement {
@@ -383,6 +399,27 @@ export class Parser implements ParserImplementation {
 		}
 
 		return newStatement(StatementType.BLOCK_OF_CONDITIONS, { conditions });
+	}
+
+	private dialogue(): DialogueStatement {
+		const actor = this.consume(TokenType.IDENTIFIER, `Expected an Actor to start a dialogue.`);
+		this.consume(TokenType.R_BK, `Expected to close the dialogue Actor specification.`);
+
+		const text = this.express();
+
+		let metadata: Expression | undefined;
+		let options: Statement | undefined;
+
+		if (this.match(TokenType.L_P)) {
+			metadata = this.metadata();
+		}
+
+		if (this.match(TokenType.WITH)) {
+			this.consume(TokenType.L_B, `Expected an opening for a dialogue's body.`);
+			options = this.block();
+		}
+
+		return newStatement(StatementType.DIALOGUE, { actor, text, metadata, options });
 	}
 
 	private condition(): ConditionStatement {
@@ -435,7 +472,8 @@ export class Parser implements ParserImplementation {
 		const value = this.express();
 
 		let metadata: Expression | undefined;
-		if (this.isType(TokenType.L_P)) {
+
+		if (this.match(TokenType.L_P)) {
 			metadata = this.metadata();
 		}
 

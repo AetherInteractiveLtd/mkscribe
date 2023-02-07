@@ -16,11 +16,13 @@ export enum ExpressionType {
 export enum StatementType {
 	EXPRESSION_STATEMENT = "ExpressionStatement",
 	PROPERTY = "PropertyStatement",
+	ACTOR = "ActorStatement",
 	STORE = "StoreStatement",
 	OBJECTIVE = "ObjectiveStatement",
 	SET = "SetStatement",
 	BLOCK = "BlockStatement",
 	BLOCK_OF_CONDITIONS = "BlockOfConditionsStatement",
+	DIALOGUE = "DialogueStatement",
 	IF = "IfStatement",
 	SCENE = "SceneStatement",
 	OPTION = "OptionStatement",
