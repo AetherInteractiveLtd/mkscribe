@@ -5,5 +5,3 @@ export interface ScribeRuntimeImplementation {
 	getTokens(): Array<Token>;
 	getAst(): Array<Statement>;
 }
-
-export interface ScribeMetadata {}

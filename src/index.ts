@@ -1,8 +1,8 @@
-import { ScribeRuntime } from "./scribe";
-import { ScribeMetadata, ScribeRuntimeImplementation } from "./scribe/types";
+import { ScribeBuilder } from "./scribe";
+import { ScribeRuntimeImplementation } from "./scribe/types";
 
-export namespace Scribe {
-	export function load(source: string, metadata?: ScribeMetadata): ScribeRuntimeImplementation {
-		return new ScribeRuntime(source, metadata);
+export namespace MkScribe {
+	export function load(source: string): ScribeRuntimeImplementation {
+		return new ScribeBuilder(source);
 	}
 }
