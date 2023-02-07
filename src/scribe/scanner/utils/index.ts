@@ -57,6 +57,7 @@ export enum TokenType {
 	ACTOR = "actor",
 	PROPERTY = "Property",
 	TRIGGER = "Trigger",
+	ECHO = "Echo",
 	EXIT = "Exit",
 
 	// Special characters
@@ -84,6 +85,7 @@ export const Keywords: KeywordsType = {
 	actor: TokenType.ACTOR,
 	property: TokenType.PROPERTY,
 	trigger: TokenType.TRIGGER,
+	echo: TokenType.ECHO,
 	exit: TokenType.EXIT,
 };
 

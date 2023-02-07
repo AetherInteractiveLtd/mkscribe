@@ -3,3 +3,6 @@
 /include
 /build
 *.tsbuildinfo
+
+# Mac users
+.DS_Store

@@ -246,6 +246,13 @@ interface TriggerStatement extends Statement {
 	body: Statement;
 }
 
+interface EchoStatement extends Statement {
+	/**
+	 * echo ...
+	 */
+	expr: Expression;
+}
+
 export interface Statements {
 	ExpressionStatement: ExpressionStatement;
 	PropertyStatement: PropertyStatement;
@@ -261,6 +268,7 @@ export interface Statements {
 	SceneStatement: SceneStatement;
 	OptionStatement: OptionStatement;
 	TriggerStatement: TriggerStatement;
+	EchoStatement: EchoStatement;
 }
 
 export interface Statement {
@@ -270,7 +278,7 @@ export interface Statement {
 
 export interface StatementVisitor<R> {
 	visitExpressionStatement(stmt: ExpressionStatement): R;
-	visitPropertyStatement(stmt: ExpressionStatement): R;
+	visitPropertyStatement(stmt: PropertyStatement): R;
 	visitActorStatement(stmt: ActorStatement): R;
 	visitObjectiveStatement(stmt: ObjectiveStatement): R;
 	visitStoreStatement(stmt: StoreStatement): R;
@@ -283,4 +291,5 @@ export interface StatementVisitor<R> {
 	visitSceneStatement(stmt: SceneStatement): R;
 	visitOptionStatement(stmt: OptionStatement): R;
 	visitTriggerStatement(stmt: TriggerStatement): R;
+	visitEchoStatement(stmt: EchoStatement): R;
 }

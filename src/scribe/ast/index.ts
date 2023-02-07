@@ -23,11 +23,12 @@ export enum StatementType {
 	BLOCK = "BlockStatement",
 	BLOCK_OF_CONDITIONS = "BlockOfConditionsStatement",
 	DIALOGUE = "DialogueStatement",
+	CONDITION = "ConditionStatement",
 	IF = "IfStatement",
 	SCENE = "SceneStatement",
 	OPTION = "OptionStatement",
 	TRIGGER = "TriggerStatement",
-	CONDITION = "ConditionStatement",
+	ECHO = "EchoStatement",
 }
 
 /**

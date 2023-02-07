@@ -7,6 +7,7 @@ import {
 	BlockStatement,
 	ConditionStatement,
 	DialogueStatement,
+	EchoStatement,
 	EnviromentAccessor,
 	Expression,
 	ExpressionStatement,
@@ -336,6 +337,10 @@ export class Parser implements ParserImplementation {
 			return this.trigger();
 		}
 
+		if (this.match(TokenType.ECHO)) {
+			return this.echo();
+		}
+
 		if (this.match(TokenType.SET)) {
 			return this.declaration(StatementType.SET);
 		}
@@ -497,6 +502,10 @@ export class Parser implements ParserImplementation {
 		const body = this.block();
 
 		return newStatement(StatementType.TRIGGER, { values, body });
+	}
+
+	private echo(): EchoStatement {
+		return newStatement(StatementType.ECHO, { expr: this.express() });
 	}
 
 	private expressionStatement(): ExpressionStatement {

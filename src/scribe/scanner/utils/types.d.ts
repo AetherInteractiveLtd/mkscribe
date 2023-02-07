@@ -19,6 +19,7 @@ declare type KeywordStrings =
 	| "actor"
 	| "property"
 	| "trigger"
+	| "echo"
 	| "exit";
 
 export declare type KeywordsType = Record<KeywordStrings, TokenType>;
