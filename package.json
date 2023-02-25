@@ -1,5 +1,5 @@
 {
-	"name": "@aether-interactive-ltd/mkscribe",
+	"name": "@AetherInteractiveLtd/mkscribe",
 	"version": "1.0.0",
 	"description": "Portable AST Generator for the Scribe interpreted language written in TypeScript.",
 	"main": "out/init.lua",

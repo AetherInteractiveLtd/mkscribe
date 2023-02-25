@@ -10,5 +10,20 @@
 		"editor.formatOnSave": true
 	},
 	"eslint.run": "onType",
-	"eslint.format.enable": true
+	"eslint.format.enable": true,
+
+	// Usual file's extensions/folders which you don't want to see.
+	"files.exclude": {
+		"**/.git": true,
+		"**/.svn": true,
+		"**/.hg": true,
+		"**/CVS": true,
+		"**/.DS_Store": true,
+		"**/Thumbs.db": true,
+
+		"out": true,
+		"include": true,
+
+		"**/node_modules": true
+	}
 }
