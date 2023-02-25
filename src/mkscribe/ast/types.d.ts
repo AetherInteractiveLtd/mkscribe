@@ -32,7 +32,7 @@ interface VariableExpression extends Expression {
 	name: Token;
 }
 
-interface EnviromentAccessor extends Expression {
+interface EnvironmentAccessor extends Expression {
 	/**
 	 * $VARIABLE (accessing)
 	 */
@@ -78,17 +78,25 @@ interface MetadataExpression extends Expression {
 	args: Array<Expression>;
 }
 
+interface ExitExpression extends Expression {
+	/**
+	 * exit ...
+	 */
+	value: Expression | undefined;
+}
+
 export interface Expressions {
 	BinaryExpression: BinaryExpression;
 	UnaryExpression: UnaryExpression;
 	TernaryExpression: TernaryExpression;
 	VariableExpression: VariableExpression;
-	EnviromentAccessor: EnviromentAccessor;
+	EnvironmentAccessor: EnvironmentAccessor;
 	LiteralExpression: LiteralExpression;
 	GroupingExpression: GroupingExpression;
 	ArrayExpression: ArrayExpression;
 	MetadataExpression: MetadataExpression;
 	StartExpression: StartExpression;
+	ExitExpression: ExitExpression;
 }
 
 export interface Expression {
@@ -101,7 +109,7 @@ export interface ExpressionVisitor<R> {
 	visitUnaryExpression(expr: UnaryExpression): R;
 	visitTernaryExpression(expr: TernaryExpression): R;
 	visitVariableExpression(expr: VariableExpression): R;
-	visitEnviromentAccessor(expr: EnviromentAccessor): R;
+	visitEnviromentAccessor(expr: EnvironmentAccessor): R;
 	visitLiteralExpression(expr: LiteralExpression): R;
 	visitGroupingExpression(expr: GroupingExpression): R;
 	visitArrayExpression(expr: ArrayExpression): R;

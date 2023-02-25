@@ -5,12 +5,13 @@ export enum ExpressionType {
 	UNARY = "UnaryExpression",
 	TERNARY = "TernaryExpression",
 	VARIABLE = "VariableExpression",
-	ENV = "EnviromentAccessor",
+	ENV = "EnvironmentAccessor",
 	LITERAL = "LiteralExpression",
 	GROUPING = "GroupingExpression",
 	ARRAY = "ArrayExpression",
 	METADATA = "MetadataExpression",
 	START = "StartExpression",
+	EXIT = "ExitExpression",
 }
 
 export enum StatementType {
