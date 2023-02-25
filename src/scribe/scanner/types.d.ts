@@ -1,11 +1,20 @@
 import { TokenType } from "./utils";
 
 export declare type TokenLiteral = string | number | boolean | undefined | Array<unknown>;
+export declare type TokenLiteralType = "string" | "boolean" | "number" | "seconds" | "undefined";
 
 export declare type Token = {
 	type: TokenType;
 	lexeme: string | undefined;
 	literal: TokenLiteral;
+	literalType: TokenLiteralType;
+
+	/**
+	 * Debugging purposes
+	 */
+	line: number;
+	start: number;
+	end: number;
 };
 
 export interface ScannerImplementation {

@@ -1,17 +1,37 @@
+import { Statement } from "./ast/types";
+import { Parser } from "./parser";
 import Scanner from "./scanner";
 import { ScannerImplementation, Token } from "./scanner/types";
-import { ScribeMetadata, ScribeRuntimeImplementation } from "./types";
+import { ScribeRuntimeImplementation } from "./types";
 
-export class ScribeRuntime implements ScribeRuntimeImplementation {
+export class ScribeBuilder implements ScribeRuntimeImplementation {
 	private readonly scanner: ScannerImplementation;
-	private readonly tokens: Array<Token>;
 
-	constructor(private readonly source: string, private readonly metadata?: ScribeMetadata) {
+	private tokens!: Array<Token>;
+	private ast!: Array<Statement>;
+
+	constructor(private readonly source: string) {
 		this.scanner = new Scanner(source);
+	}
+
+	public tokenize(): ScribeRuntimeImplementation {
 		this.tokens = this.scanner.scanTokens();
+
+		return this;
+	}
+
+	public parse(): ScribeRuntimeImplementation {
+		const parser = new Parser(this.tokens);
+		this.ast = parser.parse();
+
+		return this;
 	}
 
 	public getTokens(): Array<Token> {
 		return this.tokens;
+	}
+
+	public getAst(): Array<Statement> {
+		return this.ast;
 	}
 }

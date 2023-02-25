@@ -1,4 +1,4 @@
-import { ScannerImplementation, Token, TokenLiteral } from "./types";
+import { TokenLiteralType, ScannerImplementation, Token, TokenLiteral } from "./types";
 import { charAt, charCodeAt, Keywords, Symbols, TokenType } from "./utils";
 import { KeywordsType, TokensSymbols } from "./utils/types";
 
@@ -30,7 +30,7 @@ export default class Scanner implements ScannerImplementation {
 			this.scanToken();
 		}
 
-		this.tokens.push(this.createToken(TokenType.EOF, "", undefined)); // The end of the file has been reached
+		this.tokens.push(this.createToken(TokenType.EOF, "", "undefined", undefined, this.start, this.source.size())); // The end of the file has been reached
 
 		return this.tokens;
 	}
@@ -46,6 +46,13 @@ export default class Scanner implements ScannerImplementation {
 				while (this.peek() !== "\n" && !this.isEOF()) {
 					this.step(); // We consume the whole line so the comment isn't take in consideration.
 				}
+
+				break;
+			}
+
+			case "-": {
+				const tokentype = this.stepIfMatches(">") ? TokenType.CONTINUE : TokenType.MINUS;
+				this.addToken(tokentype);
 
 				break;
 			}
@@ -107,6 +114,12 @@ export default class Scanner implements ScannerImplementation {
 				break;
 			}
 
+			case "$": {
+				this.accessor();
+
+				break;
+			}
+
 			default: {
 				if (this.isDigit(char)) {
 					this.number();
@@ -132,12 +145,26 @@ export default class Scanner implements ScannerImplementation {
 	 * @param type of TokenType type.
 	 * @param literal of TokenLiteral type.
 	 * @param lexeme of string type, describing the lexeme it is.
+	 * @param start of the lexeme.
+	 * @param _end of the lexeme.
 	 */
-	private createToken(tokenType: TokenType, literal: TokenLiteral, lexeme: string | undefined): Token {
+	private createToken(
+		tokenType: TokenType,
+		literal: TokenLiteral,
+		_data_type: TokenLiteralType,
+		lexeme: string | undefined,
+		start: number,
+		_end: number,
+	): Token {
 		return {
 			type: tokenType,
 			literal,
+			literalType: _data_type,
 			lexeme,
+
+			line: this.line,
+			start,
+			end: _end,
 		};
 	}
 
@@ -154,13 +181,23 @@ export default class Scanner implements ScannerImplementation {
 	 * @param tokenType of TokenType type.
 	 * @param literal of TokenLiteral type.
 	 */
-	private addToken(tokenType: TokenType, literal: TokenLiteral): void;
+	private addToken(tokenType: TokenType, literal: TokenLiteral, literalType: TokenLiteralType): void;
 
-	private addToken(tokenType: unknown, literal?: unknown): void {
-		literal = literal === undefined ? undefined : literal;
-		const lexeme = this.source.sub(this.start, this.current - (this.current >= this.source.size() ? 0 : 1));
+	private addToken(tokenType: unknown, literal?: unknown, literalType?: TokenLiteralType): void {
+		const start = this.start;
+		const current = this.current - (this.current >= this.source.size() ? 0 : 1);
+		const lexeme = this.source.sub(start, current);
 
-		this.tokens.push(this.createToken(tokenType as TokenType, literal as TokenLiteral, lexeme));
+		this.tokens.push(
+			this.createToken(
+				tokenType as TokenType,
+				literal as TokenLiteral,
+				literalType || "undefined",
+				lexeme,
+				start,
+				current,
+			),
+		);
 	}
 
 	/**
@@ -245,14 +282,30 @@ export default class Scanner implements ScannerImplementation {
 
 		this.step(); // To consume the closing quotation
 
-		const string = this.source.sub(this.start + 1, this.current - 2);
-		this.addToken(TokenType.STR, string);
+		const _string = this.source.sub(this.start + 1, this.current - 2);
+		this.addToken(TokenType.STRING, _string, "string");
+	}
+
+	/**
+	 * The accessor is a special token, its value is retrieved within the enviroment set
+	 * when loading Scribe.
+	 */
+	private accessor(): void {
+		while (this.isAlphaNumeric(this.peek())) {
+			this.step();
+		}
+
+		const identifier = this.source.sub(this.start, this.current - 1);
+		this.addToken(TokenType.ENV, identifier, "undefined");
 	}
 
 	/**
 	 * Adds a new number literal
 	 */
 	private number(): void {
+		let _type: TokenType;
+		let _dataType: TokenLiteralType;
+
 		while (this.isDigit(this.peek())) {
 			this.step();
 		}
@@ -265,8 +318,18 @@ export default class Scanner implements ScannerImplementation {
 			}
 		}
 
-		const number = tonumber(this.source.sub(this.start, this.current));
-		this.addToken(TokenType.NUM, number);
+		if (this.peek() === "s") {
+			this.step(); // Consume the 's'
+
+			_type = TokenType.SECONDS;
+			_dataType = "seconds";
+		} else {
+			_type = TokenType.NUMBER;
+			_dataType = "number";
+		}
+
+		const number = this.source.sub(this.start, this.current - 1);
+		this.addToken(_type, number, _dataType);
 	}
 
 	/**
@@ -280,9 +343,13 @@ export default class Scanner implements ScannerImplementation {
 		const identifier = this.source.sub(this.start, this.current - 1);
 
 		if (identifier in Keywords) {
+			if (identifier === "true" || identifier === "false") {
+				return this.addToken(Keywords[identifier as keyof KeywordsType], identifier, "boolean");
+			}
+
 			this.addToken(Keywords[identifier as keyof KeywordsType]);
 		} else {
-			this.addToken(TokenType.ID);
+			this.addToken(TokenType.IDENTIFIER);
 		}
 	}
 }
