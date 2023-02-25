@@ -5,7 +5,7 @@ export enum ExpressionType {
 	UNARY = "UnaryExpression",
 	TERNARY = "TernaryExpression",
 	VARIABLE = "VariableExpression",
-	LOGICAL = "LogicalExpression",
+	ENV = "EnviromentAccessor",
 	LITERAL = "LiteralExpression",
 	GROUPING = "GroupingExpression",
 	ARRAY = "ArrayExpression",
@@ -16,16 +16,20 @@ export enum ExpressionType {
 
 export enum StatementType {
 	EXPRESSION_STATEMENT = "ExpressionStatement",
+	PROPERTY = "PropertyStatement",
+	ACTOR = "ActorStatement",
 	STORE = "StoreStatement",
 	OBJECTIVE = "ObjectiveStatement",
 	SET = "SetStatement",
 	BLOCK = "BlockStatement",
 	BLOCK_OF_CONDITIONS = "BlockOfConditionsStatement",
+	DIALOGUE = "DialogueStatement",
+	CONDITION = "ConditionStatement",
 	IF = "IfStatement",
 	SCENE = "SceneStatement",
 	OPTION = "OptionStatement",
 	TRIGGER = "TriggerStatement",
-	CONDITION = "ConditionStatement",
+	ECHO = "EchoStatement",
 }
 
 /**

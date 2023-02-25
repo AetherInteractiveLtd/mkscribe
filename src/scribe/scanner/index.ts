@@ -1,8 +1,8 @@
-import { LiteralType, ScannerImplementation, Token, TokenLiteral } from "./types";
+import { TokenLiteralType, TokenizerImplementation, Token, TokenLiteral } from "./types";
 import { charAt, charCodeAt, Keywords, Symbols, TokenType } from "./utils";
 import { KeywordsType, TokensSymbols } from "./utils/types";
 
-export default class Scanner implements ScannerImplementation {
+export class Tokenizer implements TokenizerImplementation {
 	private tokens = new Array<Token>();
 
 	private start = 0;
@@ -24,13 +24,13 @@ export default class Scanner implements ScannerImplementation {
 
 	constructor(private readonly source: string) {}
 
-	public scanTokens(): Array<Token> {
+	public scan(): Array<Token> {
 		while (!this.isEOF()) {
 			this.start = this.current;
 			this.scanToken();
 		}
 
-		this.tokens.push(this.createToken(TokenType.EOF, "", undefined, "undefined", this.start, this.source.size()));
+		this.tokens.push(this.createToken(TokenType.EOF, "", "undefined", undefined, this.start, this.source.size())); // The end of the file has been reached
 
 		return this.tokens;
 	}
@@ -114,6 +114,12 @@ export default class Scanner implements ScannerImplementation {
 				break;
 			}
 
+			case "$": {
+				this.accessor();
+
+				break;
+			}
+
 			default: {
 				if (this.isDigit(char)) {
 					this.number();
@@ -137,25 +143,24 @@ export default class Scanner implements ScannerImplementation {
 	 * Creates a new token, really just an utility function.
 	 *
 	 * @param type of TokenType type.
-	 * @param lexeme of string type, describing the lexeme it is.
 	 * @param literal of TokenLiteral type.
-	 * @param literalType of string type (optional).
+	 * @param lexeme of string type, describing the lexeme it is.
 	 * @param start of the lexeme.
 	 * @param _end of the lexeme.
 	 */
 	private createToken(
 		tokenType: TokenType,
-		lexeme: string | undefined,
 		literal: TokenLiteral,
-		literalType: LiteralType,
+		_data_type: TokenLiteralType,
+		lexeme: string | undefined,
 		start: number,
 		_end: number,
 	): Token {
 		return {
 			type: tokenType,
-			lexeme,
 			literal,
-			literalType: literalType || "undefined",
+			literalType: _data_type,
+			lexeme,
 
 			line: this.line,
 			start,
@@ -175,11 +180,10 @@ export default class Scanner implements ScannerImplementation {
 	 *
 	 * @param tokenType of TokenType type.
 	 * @param literal of TokenLiteral type.
-	 * @param literalType of string type.
 	 */
-	private addToken(tokenType: TokenType, literal: TokenLiteral, literalType: LiteralType): void;
+	private addToken(tokenType: TokenType, literal: TokenLiteral, literalType: TokenLiteralType): void;
 
-	private addToken(tokenType: unknown, literal?: unknown, literalType?: unknown): void {
+	private addToken(tokenType: unknown, literal?: unknown, literalType?: TokenLiteralType): void {
 		const start = this.start;
 		const current = this.current - (this.current >= this.source.size() ? 0 : 1);
 		const lexeme = this.source.sub(start, current);
@@ -187,9 +191,9 @@ export default class Scanner implements ScannerImplementation {
 		this.tokens.push(
 			this.createToken(
 				tokenType as TokenType,
-				lexeme,
 				literal as TokenLiteral,
-				literalType as LiteralType,
+				literalType || "undefined",
+				lexeme,
 				start,
 				current,
 			),
@@ -205,7 +209,7 @@ export default class Scanner implements ScannerImplementation {
 
 	public isDigit(char: string): boolean {
 		const charCode = charCodeAt(char);
-		const evaluation = charCode >= Scanner._0 && charCode <= Scanner._9;
+		const evaluation = charCode >= Tokenizer._0 && charCode <= Tokenizer._9;
 
 		return evaluation;
 	}
@@ -214,9 +218,9 @@ export default class Scanner implements ScannerImplementation {
 		const charCode = charCodeAt(char);
 		let evaluation;
 		{
-			const isaToz = charCode >= Scanner._a && charCode <= Scanner._z;
-			const isAtoZ = charCode >= Scanner._A && charCode <= Scanner._Z;
-			const isUnderscore = charCode === Scanner._under_score;
+			const isaToz = charCode >= Tokenizer._a && charCode <= Tokenizer._z;
+			const isAtoZ = charCode >= Tokenizer._A && charCode <= Tokenizer._Z;
+			const isUnderscore = charCode === Tokenizer._under_score;
 
 			evaluation = isaToz || isAtoZ || isUnderscore;
 		}
@@ -283,9 +287,25 @@ export default class Scanner implements ScannerImplementation {
 	}
 
 	/**
+	 * The accessor is a special token, its value is retrieved within the enviroment set
+	 * when loading Scribe.
+	 */
+	private accessor(): void {
+		while (this.isAlphaNumeric(this.peek())) {
+			this.step();
+		}
+
+		const identifier = this.source.sub(this.start, this.current - 1);
+		this.addToken(TokenType.ENV, identifier, "undefined");
+	}
+
+	/**
 	 * Adds a new number literal
 	 */
 	private number(): void {
+		let _type: TokenType;
+		let _dataType: TokenLiteralType;
+
 		while (this.isDigit(this.peek())) {
 			this.step();
 		}
@@ -298,8 +318,18 @@ export default class Scanner implements ScannerImplementation {
 			}
 		}
 
-		const number = tonumber(this.source.sub(this.start, this.current));
-		this.addToken(TokenType.NUMBER, number, "number");
+		if (this.peek() === "s") {
+			this.step(); // Consume the 's'
+
+			_type = TokenType.SECONDS;
+			_dataType = "seconds";
+		} else {
+			_type = TokenType.NUMBER;
+			_dataType = "number";
+		}
+
+		const number = this.source.sub(this.start, this.current - 1);
+		this.addToken(_type, number, _dataType);
 	}
 
 	/**
@@ -313,10 +343,8 @@ export default class Scanner implements ScannerImplementation {
 		const identifier = this.source.sub(this.start, this.current - 1);
 
 		if (identifier in Keywords) {
-			if (identifier === "true") {
-				return this.addToken(Keywords[identifier as keyof KeywordsType], true, "boolean");
-			} else if (identifier === "false") {
-				return this.addToken(Keywords[identifier as keyof KeywordsType], false, "boolean");
+			if (identifier === "true" || identifier === "false") {
+				return this.addToken(Keywords[identifier as keyof KeywordsType], identifier, "boolean");
 			}
 
 			this.addToken(Keywords[identifier as keyof KeywordsType]);

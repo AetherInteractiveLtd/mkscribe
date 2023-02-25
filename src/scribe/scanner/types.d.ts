@@ -1,13 +1,13 @@
 import { TokenType } from "./utils";
 
 export declare type TokenLiteral = string | number | boolean | undefined | Array<unknown>;
-export declare type LiteralType = "string" | "boolean" | "number" | "undefined";
+export declare type TokenLiteralType = "string" | "boolean" | "number" | "seconds" | "undefined";
 
 export declare type Token = {
 	type: TokenType;
 	lexeme: string | undefined;
 	literal: TokenLiteral;
-	literalType: string | undefined;
+	literalType: TokenLiteralType;
 
 	/**
 	 * Debugging purposes
@@ -17,11 +17,11 @@ export declare type Token = {
 	end: number;
 };
 
-export interface ScannerImplementation {
+export interface TokenizerImplementation {
 	/**
 	 * Scans all tokens within the source string provided.
 	 */
-	scanTokens(): Array<Token>;
+	scan(): Array<Token>;
 
 	/**
 	 * Returns whether it's a digit (number) or not

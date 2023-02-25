@@ -34,6 +34,7 @@ export enum TokenType {
 
 	// Literals supported
 	IDENTIFIER = "Identifier",
+	SECONDS = "Seconds",
 	STRING = "String",
 	NUMBER = "Number",
 
@@ -56,7 +57,11 @@ export enum TokenType {
 	ACTOR = "actor",
 	PROPERTY = "Property",
 	TRIGGER = "Trigger",
+	ECHO = "Echo",
 	EXIT = "Exit",
+
+	// Special characters
+	ENV = "EnviromentAccessor",
 
 	EOF = "End_of_file", // this is kinda necessary at the moment to tell the tokenizer when the end has been reached
 }
@@ -80,6 +85,7 @@ export const Keywords: KeywordsType = {
 	actor: TokenType.ACTOR,
 	property: TokenType.PROPERTY,
 	trigger: TokenType.TRIGGER,
+	echo: TokenType.ECHO,
 	exit: TokenType.EXIT,
 };
 

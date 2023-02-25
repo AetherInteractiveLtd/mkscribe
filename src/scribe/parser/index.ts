@@ -5,27 +5,26 @@ import {
 	BlockOfConditionsStatement,
 	BlockStatement,
 	ConditionStatement,
-	ExitExpression,
+	DialogueStatement,
+	EchoStatement,
+	EnviromentAccessor,
 	Expression,
 	ExpressionStatement,
 	GroupingExpression,
 	IfStatement,
+	InteractStatement,
 	LiteralExpression,
-	LogicalExpression,
 	MetadataExpression,
-	ObjectiveStatement,
 	OptionStatement,
 	SceneStatement,
-	SetStatement,
 	StartExpression,
 	Statement,
-	StoreStatement,
 	TernaryExpression,
 	TriggerStatement,
 	UnaryExpression,
 	VariableExpression,
 } from "../ast/types";
-import { LiteralType, Token } from "../scanner/types";
+import { Token } from "../scanner/types";
 import { TokenType } from "../scanner/utils";
 import { ParserImplementation } from "./types";
 
@@ -35,114 +34,67 @@ export class Parser implements ParserImplementation {
 	constructor(private readonly tokens: Array<Token>) {}
 
 	parse(): Array<Statement> {
-		const statements: Array<Statement> = new Array();
+		const stmts: Array<Statement> = new Array();
 
 		while (!this.isEOF()) {
 			try {
-				statements.push(this.parseToken());
-			} catch (e) {
-				warn(e);
+				stmts.push(this.parseToken());
+			} catch (_error) {
+				warn(_error);
+
+				this.step(); // Doesn't interrupt, and gets all errors in a go.
 			}
 		}
 
-		return statements;
+		return stmts;
 	}
 
-	/**
-	 * Checks for the current token and parse it.
-	 *
-	 * @return a Statement.
-	 */
 	private parseToken(): Statement {
 		return this.declare();
 	}
 
-	/**
-	 * Constructs a full error message.
-	 *
-	 * @param token the Token throwing the exception.
-	 * @param message possible error message.
-	 *
-	 * @returns a string with the full logged error.
-	 */
 	private error(token: Token, message?: string): string {
 		return token.type === TokenType.EOF
 			? `End of File reached | Line: ${token.line}-`
-			: `${message} | [Ln ${token.line}, start ${token.start}, end ${token.end};] | '${token.lexeme}'`;
+			: `${message} | [Ln ${token.line}, start ${token.start}, end ${token.end};] | Got '${token.lexeme}'`;
 	}
 
-	/**
-	 * Checks if it reached the EOF (end of file) token.
-	 *
-	 * @returns a boolean.
-	 */
 	protected isEOF(): boolean {
 		return this.peek().type === TokenType.EOF;
 	}
 
-	/**
-	 * Checks the current consumed token to be of a type.
-	 *
-	 * @param tokenType the TokenType to check for.
-	 *
-	 * @returns whether it matches the type or not.
-	 */
-	protected isType(tokenType: TokenType): boolean {
+	protected isType(...types: Array<TokenType>): boolean {
 		if (this.isEOF()) return false;
 
-		return this.peek().type === tokenType;
+		for (const _type of types) {
+			if (this.peek().type === _type) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
-	/**
-	 * Looks at current consumed token.
-	 *
-	 * @return the current consumed token.
-	 */
 	protected peek(): Token {
 		return this.tokens[this.current];
 	}
 
-	/**
-	 * Advances to the next token and consumes it.
-	 *
-	 * @return the last consumed token.
-	 */
 	protected step(): Token {
 		if (!this.isEOF()) this.current++;
 
 		return this.previous();
 	}
 
-	/**
-	 * Consumes given token of it matches the TokenType, if not, it will throw an error.
-	 *
-	 * @param tokenType the TokenType.
-	 * @param errorMessage a possible error message, if it's not what it was expected.
-	 *
-	 * @returns either an error or the token consumed.
-	 */
 	protected consume(tokenType: TokenType, errorMessage: string): Token {
 		if (this.isType(tokenType)) return this.step();
 
 		throw this.error(this.peek(), errorMessage);
 	}
 
-	/**
-	 * Returns last token from the current consumed one.
-	 *
-	 * @return the last consumed token.
-	 */
 	protected previous(): Token {
 		return this.tokens[this.current - 1];
 	}
 
-	/**
-	 * Consumes token if it matches the given TokenType.
-	 *
-	 * @param token the TokenType.
-	 *
-	 * @returns whether it matches or not.
-	 */
 	protected match(token: TokenType): boolean {
 		if (this.isType(token)) {
 			this.step();
@@ -153,13 +105,6 @@ export class Parser implements ParserImplementation {
 		return false;
 	}
 
-	/**
-	 * Consumes a token if it matches a single TokenType from the given array.
-	 *
-	 * @param types an array of TokenTypes.
-	 *
-	 * @returns a match.
-	 */
 	protected matches(...types: Array<TokenType>): boolean {
 		for (const tokenType of types) {
 			const isMatch = this.match(tokenType);
@@ -174,54 +119,59 @@ export class Parser implements ParserImplementation {
 
 	/** Expressions */
 
-	/**
-	 * Constructs a new Expressions.
-	 *
-	 * @returns an Expression
-	 */
 	protected express(): Expression {
 		if (this.match(TokenType.START)) {
 			return this.start();
 		}
 
+		if (this.match(TokenType.ENV)) {
+			return this.accessor();
+		}
+
+		const expr = this.expression();
+
+		if (this.match(TokenType.CONTINUE)) {
+			if (this.isType(TokenType.L_B)) {
+				return expr;
+			} else {
+				return this.ternary(expr);
+			}
+		}
+
+		return expr;
+	}
+
+	protected expression(): Expression {
 		if (this.matches(TokenType.MINUS, TokenType.NOT)) {
 			return this.unary();
 		}
 
-		const left = this.expression();
+		const left = this.primary();
 
 		if (
 			this.matches(
+				TokenType.STAR,
+				TokenType.MINUS,
+				TokenType.PLUS,
+				TokenType.SLASH,
 				TokenType.EQUAL,
 				TokenType.GREATER,
 				TokenType.LESS,
 				TokenType.G_E,
 				TokenType.L_E,
 				TokenType.E_E,
+				TokenType.OR,
+				TokenType.AND,
 			)
 		) {
-			return this.logical(left);
-		}
-
-		if (this.matches(TokenType.STAR, TokenType.MINUS, TokenType.PLUS, TokenType.SLASH)) {
 			return this.binary(left);
-		}
-
-		if (this.match(TokenType.CONTINUE)) {
-			return this.ternary(left);
 		}
 
 		return left;
 	}
 
-	/**
-	 * Constructs a new Expression depending on the matching token, this
-	 * if all the previous `is...` didn't pass.
-	 *
-	 * @returns an Expression
-	 */
-	private expression(): Expression {
-		if (this.matches(TokenType.STRING, TokenType.NUMBER, TokenType.FALSE, TokenType.TRUE)) {
+	private primary(): Expression {
+		if (this.matches(TokenType.STRING, TokenType.NUMBER, TokenType.FALSE, TokenType.TRUE, TokenType.SECONDS)) {
 			return this.literal();
 		}
 
@@ -240,215 +190,147 @@ export class Parser implements ParserImplementation {
 		throw this.error(this.peek(), "Expected an expression!");
 	}
 
-	/**
-	 * Constructs a new UnaryExpression.
-	 *
-	 * @returns a UnaryExpression
-	 */
 	private unary(): UnaryExpression {
 		const operator = this.previous();
 		const right = this.express();
 
-		return newExpression(ExpressionType.UNARY, {
-			operator,
-			right,
-		});
+		return newExpression(ExpressionType.UNARY, { operator, right });
 	}
 
-	/**
-	 * Constructs a new BinaryExpression.
-	 *
-	 * @returns a BinaryExpression
-	 */
 	private binary(left: Expression): BinaryExpression {
 		const operator = this.previous();
-		const right = this.express();
+		const right = this.expression();
 
-		return newExpression(ExpressionType.BINARY, {
-			left,
-			operator,
-			right,
-		});
+		return newExpression(ExpressionType.BINARY, { left, operator, right });
 	}
 
-	/**
-	 * Constructs a new TernaryExpression.
-	 *
-	 * @returns a TernaryExpression
-	 */
 	private ternary(condition: Expression): TernaryExpression {
 		const ifTrue = this.express();
-
 		this.consume(TokenType.COLON, `Expected : after expression to denote the ternary's continuation.`);
-
 		const ifFalse = this.express();
 
-		return newExpression(ExpressionType.TERNARY, {
-			condition,
-			ifTrue,
-			ifFalse,
-		});
+		return newExpression(ExpressionType.TERNARY, { condition, ifTrue, ifFalse });
 	}
 
-	/**
-	 * Constructs a new VariableExpression.
-	 *
-	 * @returns a VariableExpression
-	 */
 	private variable(): VariableExpression {
-		const name = this.previous();
-
-		return newExpression(ExpressionType.VARIABLE, {
-			name,
-		});
+		return newExpression(ExpressionType.VARIABLE, { name: this.previous() });
 	}
 
-	/**
-	 * Constructs a new LiteralExpression.
-	 *
-	 * @returns a LiteralExpression
-	 */
 	private literal(): LiteralExpression {
-		const value = this.previous();
+		let value = this.previous();
+		const dataType = value.literalType;
 
-		return newExpression(ExpressionType.LITERAL, {
-			value: value as never, // Wonky workaround, but still, pretty valid and useful
-			literalType: value.literalType as LiteralType,
-		});
+		switch (value.lexeme) {
+			case "false": {
+				value = false as never;
+
+				break;
+			}
+
+			case "true": {
+				value = true as never;
+
+				break;
+			}
+
+			default: {
+				value = value.literal as never;
+			}
+		}
+
+		return newExpression(ExpressionType.LITERAL, { value: value as never, dataType });
 	}
 
-	/**
-	 * Constructs a new LogicalExpression.
-	 *
-	 * @returns a LogicalExpression
-	 */
-	private logical(left: Expression): LogicalExpression {
-		const operator = this.previous();
-		const right = this.express();
-
-		return newExpression(ExpressionType.LOGICAL, {
-			left,
-			operator,
-			right,
-		});
+	private accessor(): EnviromentAccessor {
+		return newExpression(ExpressionType.ENV, { name: this.previous() });
 	}
 
-	/**
-	 * Constructs a new GroupingExpression.
-	 *
-	 * @returns a GroupingExpression
-	 */
 	private grouping(): GroupingExpression {
 		const expr = this.express();
+		this.consume(TokenType.R_P, `Expected ")" to close a grouping expression.`);
 
-		this.consume(TokenType.R_P, `Expected "(" to close a grouping express.`);
-
-		return newExpression(ExpressionType.GROUPING, {
-			expr,
-		});
+		return newExpression(ExpressionType.GROUPING, { expr });
 	}
 
-	/**
-	 * Constructs a new ArrayExpression.
-	 *
-	 * @returns a ArrayExpression
-	 */
 	private array(): ArrayExpression {
-		const expressions: Array<Expression> = new Array();
+		const exprs: Array<Expression> = new Array();
 
-		while (!this.isType(TokenType.R_BK)) {
+		while (!this.isEOF()) {
+			if (this.isType(TokenType.R_BK)) {
+				this.consume(TokenType.R_BK, `Expected enclosing bracket (]) to an array expression.`);
+
+				break;
+			}
+
 			const expr = this.express();
-			expressions.push(expr);
+			exprs.push(expr);
 
 			this.match(TokenType.COMMA);
 		}
 
-		this.consume(TokenType.R_BK, `Expected enclosing bracket (]) to an array express.`);
-
-		return newExpression(ExpressionType.ARRAY, {
-			expressions,
-		});
+		return newExpression(ExpressionType.ARRAY, { expressions: exprs });
 	}
 
-	/**
-	 * Constructs a new MetadataExpression.
-	 *
-	 * @returns a MetadataExpression
-	 */
 	private metadata(): MetadataExpression {
 		const args: Array<Expression> = new Array();
 
-		while (!this.isType(TokenType.R_P)) {
+		while (!this.isEOF()) {
+			if (this.isType(TokenType.R_P)) {
+				this.consume(TokenType.R_P, `Expected enclosing parenthesis to a metadata express.`);
+
+				break;
+			}
+
 			const expr = this.express();
 			args.push(expr);
 
 			this.match(TokenType.COMMA);
 		}
 
-		this.consume(TokenType.R_P, `Expected enclosing parenthesis to a metadata express.`);
-
-		return newExpression(ExpressionType.METADATA, {
-			args,
-		});
+		return newExpression(ExpressionType.METADATA, { args });
 	}
 
-	/**
-	 * Constructs a new StartExpression.
-	 *
-	 * @returns a StartExpression
-	 */
 	private start(): StartExpression {
 		const objective = this.consume(TokenType.IDENTIFIER, `Expected an objective identifier to start!`);
 
-		return newExpression(ExpressionType.START, {
-			objective,
-		});
-	}
-
-	/**
-	 * Constructs a new ExitExpression.
-	 *
-	 * @returns an ExitExpression
-	 */
-	private exit(): ExitExpression {
-		const data = this.express();
-
-		return newExpression(ExpressionType.EXIT, {
-			data,
-		});
+		return newExpression(ExpressionType.START, { objective });
 	}
 
 	/** Statements */
 
-	/**
-	 * Declares a new statement.
-	 *
-	 * @returns an Statement
-	 */
 	private declare(): Statement {
-		if (this.match(TokenType.STORE)) {
-			return this.store();
+		if (this.isType(TokenType.PROPERTY, TokenType.OBJECTIVE, TokenType.STORE)) {
+			if (this.match(TokenType.PROPERTY)) {
+				return this.declaration(StatementType.PROPERTY);
+			}
+
+			if (this.match(TokenType.OBJECTIVE)) {
+				return this.declaration(StatementType.OBJECTIVE, true);
+			}
+
+			if (this.match(TokenType.STORE)) {
+				return this.declaration(StatementType.STORE, true);
+			}
 		}
 
-		if (this.match(TokenType.OBJECTIVE)) {
-			return this.objective();
+		if (this.match(TokenType.SCENE)) {
+			return this.scene();
+		}
+
+		if (this.match(TokenType.INTERACT)) {
+			return this.interact();
+		}
+
+		if (this.match(TokenType.ACTOR)) {
+			return this.declaration(StatementType.ACTOR, false);
 		}
 
 		return this.statement();
 	}
 
-	/**
-	 * Constructs a new statement depending on its type.
-	 *
-	 * @returns an Statement
-	 */
 	private statement(): Statement {
 		if (this.match(TokenType.IF)) {
 			return this.if();
-		}
-
-		if (this.match(TokenType.SCENE)) {
-			return this.scene();
 		}
 
 		if (this.match(TokenType.OPTION)) {
@@ -459,241 +341,200 @@ export class Parser implements ParserImplementation {
 			return this.trigger();
 		}
 
+		if (this.match(TokenType.ECHO)) {
+			return this.echo();
+		}
+
 		if (this.match(TokenType.SET)) {
-			return this.set();
+			return this.declaration(StatementType.SET);
+		}
+
+		if (this.match(TokenType.L_BK)) {
+			return this.dialogue();
+		}
+
+		if (this.match(TokenType.DEFAULT)) {
+			if (this.match(TokenType.OBJECTIVE)) {
+				return this.declaration(StatementType.OBJECTIVE, true, true);
+			}
+
+			if (this.isType(TokenType.SCENE)) {
+				return this.scene();
+			}
 		}
 
 		return this.expressionStatement();
 	}
 
-	/**
-	 * Constructs a new StoreStatement.
-	 *
-	 * @returns a StoreStatement
-	 */
-	private store(): StoreStatement {
-		const name = this.consume(TokenType.IDENTIFIER, "Expected a store name.");
+	private declaration(_type: StatementType, hasMetadata?: boolean, isDefault?: boolean): Statement {
+		const name = this.consume(TokenType.IDENTIFIER, `Expected an identifier for the ${_type}`);
+
+		let identifier: Token | undefined;
+		if (_type === StatementType.STORE) {
+			identifier = this.consume(TokenType.IDENTIFIER, `Expected an identifier.`);
+		}
+
+		let metadata: MetadataExpression | undefined;
+		if (hasMetadata && this.match(TokenType.L_P)) {
+			metadata = this.metadata();
+		}
+
+		const _default = isDefault;
+		const value = this.express();
+
+		return newStatement(_type, { name, value, metadata, identifier, default: _default } as never);
+	}
+
+	private block(): BlockStatement {
+		const statements: Array<Statement> = new Array();
+
+		while (!this.isEOF()) {
+			if (this.isType(TokenType.R_B)) {
+				this.consume(TokenType.R_B, "Expected '}' to close a block.");
+
+				break;
+			}
+
+			statements.push(this.statement());
+		}
+
+		return newStatement(StatementType.BLOCK, { statements });
+	}
+
+	private conditionsBlock(): BlockOfConditionsStatement {
+		const conditions: Array<ConditionStatement> = new Array();
+
+		while (!this.isEOF()) {
+			if (this.isType(TokenType.R_B)) {
+				this.consume(TokenType.R_B, "Expected '}' to close a block.");
+
+				break;
+			}
+
+			conditions.push(this.condition());
+		}
+
+		return newStatement(StatementType.BLOCK_OF_CONDITIONS, { conditions });
+	}
+
+	private dialogue(): DialogueStatement {
+		const actor = this.consume(TokenType.IDENTIFIER, `Expected an Actor to start a dialogue.`);
+		this.consume(TokenType.R_BK, `Expected to close the dialogue Actor specification.`);
+
+		const text = this.express();
 
 		let metadata: Expression | undefined;
-
 		if (this.match(TokenType.L_P)) {
 			metadata = this.metadata();
 		}
 
-		const value = this.express();
-
-		return newStatement(StatementType.STORE, {
-			name,
-			metadata,
-			value,
-		});
-	}
-
-	/**
-	 * Constructs a new ObjectiveStatement.
-	 *
-	 * @returns an ObjectiveStatement
-	 */
-	private objective(): ObjectiveStatement {
-		const name = this.consume(TokenType.IDENTIFIER, `Expected an objective identifier!`);
-
-		let value!: Expression;
-
-		if (this.matches(TokenType.STRING, TokenType.NUMBER, TokenType.TRUE, TokenType.FALSE)) {
-			value = this.express();
-		} else {
-			this.error(this.previous(), `Expected a literal/expression to initialise an objective's value.`);
+		let body: BlockStatement | undefined;
+		if (this.match(TokenType.WITH)) {
+			this.consume(TokenType.L_B, `Expected an opening for a dialogue's body.`);
+			body = this.block();
 		}
 
-		return newStatement(StatementType.OBJECTIVE, {
-			name,
-			value,
-		});
-	}
-
-	/**
-	 * Constructs a new SetStatement.
-	 *
-	 * @returns an SetStatement
-	 */
-	private set(): SetStatement {
-		const name = this.consume(TokenType.IDENTIFIER, "Expected a store identifier to modify its value.");
-		const value = this.express();
-
-		return newStatement(StatementType.SET, {
-			name,
-			value,
-		});
-	}
-
-	/**
-	 * Constructs a new BlockStatement.
-	 *
-	 * @returns a BlockStatement
-	 */
-	private block(): BlockStatement {
-		const statements: Array<Statement> = new Array();
-
-		while (!this.isType(TokenType.R_B) && !this.isEOF) {
-			statements.push(this.declare());
+		const options: Array<Statement> = [];
+		if (body !== undefined) {
+			for (const stmt of body.statements) {
+				if (stmt.type === StatementType.OPTION) {
+					options.push(stmt);
+				}
+			}
 		}
 
-		this.consume(TokenType.R_B, "Expected '}' to close a block.");
-
-		return newStatement(StatementType.BLOCK, {
-			statements,
-		});
+		return newStatement(StatementType.DIALOGUE, { actor, text, metadata, options, body });
 	}
 
-	/**
-	 * Constructs a new BlockOfConditionsStatement.
-	 *
-	 * @returns a BlockOfConditionsStatement
-	 */
-	private blockOfConditions(): BlockOfConditionsStatement {
-		const conditions: Array<ConditionStatement> = new Array();
-
-		while (!this.isType(TokenType.R_B) && !this.isEOF) {
-			conditions.push(this.condition());
-		}
-
-		this.consume(TokenType.R_B, "Expected '}' to close a block.");
-
-		return newStatement(StatementType.BLOCK_OF_CONDITIONS, {
-			conditions,
-		});
-	}
-
-	/**
-	 * Constructs a new ConditionStatement.
-	 *
-	 * @returns a ConditionStatement
-	 */
 	private condition(): ConditionStatement {
 		const condition = this.express();
 
-		this.consume(TokenType.CONTINUE, `Expected -> after a condition.`);
 		this.consume(TokenType.L_B, `Expected "{" after -> to start a condition's body.`);
-
 		const body = this.block();
 
-		return newStatement(StatementType.CONDITION, {
-			condition,
-			body,
-		});
+		return newStatement(StatementType.CONDITION, { condition, body });
 	}
 
-	/**
-	 * Constructs a new IfStatement.
-	 *
-	 * @returns an IfStatement
-	 */
 	private if(): IfStatement {
 		let condition: Expression | undefined;
+		if (
+			this.isType(
+				TokenType.STRING,
+				TokenType.NUMBER,
+				TokenType.TRUE,
+				TokenType.FALSE,
+				TokenType.IDENTIFIER,
+				TokenType.L_P,
+			)
+		) {
+			condition = this.express();
+		}
+
 		let body: BlockStatement | BlockOfConditionsStatement;
-
-		// eslint-disable-next-line prefer-const
-		condition = this.express();
-
 		if (condition !== undefined) {
-			this.consume(TokenType.CONTINUE, `Expected "->" after if's condition.`);
 			this.consume(TokenType.L_B, `Expected "{" after a -> for the body start.`);
-
 			body = this.block();
 		} else {
 			this.consume(TokenType.L_B, `Expected "{" after an if`);
-
-			body = this.blockOfConditions();
+			body = this.conditionsBlock();
 		}
 
-		return newStatement(StatementType.IF, {
-			condition,
-			body,
-		});
+		return newStatement(StatementType.IF, { condition, body });
 	}
 
-	/**
-	 * Constructs a new SceneStatement.
-	 *
-	 * @returns an SceneStatement
-	 */
 	private scene(): SceneStatement {
-		const name = this.consume(TokenType.IDENTIFIER, "Expected a scene identifier.");
-		this.consume(TokenType.L_B, `Expected "{" after a scene for the body start.`);
+		const previous = this.previous();
 
+		let _default: boolean | undefined;
+		if (previous.type === TokenType.DEFAULT) {
+			_default = true;
+		}
+
+		const name = this.consume(TokenType.IDENTIFIER, "Expected a scene identifier.");
+
+		this.consume(TokenType.L_B, `Expected "{" after a scene for the body start.`);
 		const body = this.block();
 
-		return newStatement(StatementType.SCENE, {
-			name,
-			body,
-		});
+		return newStatement(StatementType.SCENE, { name, body, default: _default });
 	}
 
-	/**
-	 * Constructs a new OptionStatement.
-	 *
-	 * @returns an OptionStatement.
-	 */
 	private option(): OptionStatement {
-		let value: Expression | undefined;
-		let metadata: Expression | undefined;
+		const value = this.express();
 
-		// eslint-disable-next-line prefer-const
-		value = this.express();
-
+		let metadata: MetadataExpression | undefined;
 		if (this.match(TokenType.L_P)) {
 			metadata = this.metadata();
 		}
 
 		this.consume(TokenType.L_B, `Expected "{" to start the option's body.`);
-
 		const body = this.block();
 
-		return newStatement(StatementType.OPTION, {
-			value,
-			metadata,
-			body,
-		});
+		return newStatement(StatementType.OPTION, { value, metadata, body });
 	}
 
-	/**
-	 * Constructs a new TriggerStatement.
-	 *
-	 * @returns an TriggerStatement
-	 */
 	private trigger(): TriggerStatement {
-		let values: Expression;
-		let _type: "array" | "single";
-
-		if (this.match(TokenType.L_BK)) {
-			values = this.array();
-			_type = "array";
-		} else {
-			values = this.express();
-			_type = "single";
-		}
+		const values = this.express();
 
 		this.consume(TokenType.L_B, `Expected "{" to start the trigger's body.`);
-
 		const body = this.block();
 
-		return newStatement(StatementType.TRIGGER, {
-			values,
-			body,
-			_type,
-		});
+		return newStatement(StatementType.TRIGGER, { values, body });
 	}
 
-	/**
-	 * Constructs a new ExpressionStatement.
-	 *
-	 * @returns an ExpressionStatement
-	 */
-	private expressionStatement(): ExpressionStatement {
-		const expr = this.express();
+	private interact(): InteractStatement {
+		const identifier = this.consume(TokenType.IDENTIFIER, `Expected an identifier for the interaction.`);
 
-		return newStatement(StatementType.EXPRESSION_STATEMENT, {
-			expr,
-		});
+		this.consume(TokenType.L_B, `Expected "{" to start the interaction's body.`);
+		const body = this.block();
+
+		return newStatement(StatementType.INTERACT, { identifier, body });
+	}
+
+	private echo(): EchoStatement {
+		return newStatement(StatementType.ECHO, { expr: this.express() });
+	}
+
+	private expressionStatement(): ExpressionStatement {
+		return newStatement(StatementType.EXPRESSION_STATEMENT, { expr: this.express() });
 	}
 }

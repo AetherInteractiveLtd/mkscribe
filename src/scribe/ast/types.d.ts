@@ -1,5 +1,5 @@
 import { ExpressionType, StatementType } from ".";
-import { LiteralType, Token, TokenLiteral } from "../scanner/types";
+import { TokenLiteralType, Token, TokenLiteral } from "../scanner/types";
 
 /** Expressions */
 
@@ -7,7 +7,7 @@ interface BinaryExpression extends Expression {
 	/**
 	 * left (operator) right
 	 *
-	 * operators: [+, *, -, /]
+	 * operators: [+, *, -, /, >, <, >=, <=, ==]
 	 */
 	left: Expression;
 	operator: Token;
@@ -32,12 +32,11 @@ interface VariableExpression extends Expression {
 	name: Token;
 }
 
-interface LogicalExpression extends BinaryExpression {
+interface EnviromentAccessor extends Expression {
 	/**
-	 * left (operator) right
-	 *
-	 * operators: [>, <, >=, <=, ==]
+	 * $VARIABLE (accessing)
 	 */
+	name: Token;
 }
 
 interface LiteralExpression extends Expression {
@@ -45,7 +44,7 @@ interface LiteralExpression extends Expression {
 	 * VALUE
 	 */
 	value: TokenLiteral;
-	literalType: LiteralType;
+	dataType: TokenLiteralType;
 }
 
 interface GroupingExpression extends Expression {
@@ -79,25 +78,17 @@ interface MetadataExpression extends Expression {
 	args: Array<Expression>;
 }
 
-interface ExitExpression extends Expression {
-	/**
-	 * Can be any expression, an array or whatever.
-	 */
-	data?: Expression | undefined;
-}
-
 export interface Expressions {
 	BinaryExpression: BinaryExpression;
 	UnaryExpression: UnaryExpression;
 	TernaryExpression: TernaryExpression;
 	VariableExpression: VariableExpression;
-	LogicalExpression: LogicalExpression;
+	EnviromentAccessor: EnviromentAccessor;
 	LiteralExpression: LiteralExpression;
 	GroupingExpression: GroupingExpression;
 	ArrayExpression: ArrayExpression;
 	MetadataExpression: MetadataExpression;
 	StartExpression: StartExpression;
-	ExitExpression: ExitExpression;
 }
 
 export interface Expression {
@@ -110,11 +101,11 @@ export interface ExpressionVisitor<R> {
 	visitUnaryExpression(expr: UnaryExpression): R;
 	visitTernaryExpression(expr: TernaryExpression): R;
 	visitVariableExpression(expr: VariableExpression): R;
-	visitLogicalExpression(expr: LogicalExpression): R;
+	visitEnviromentAccessor(expr: EnviromentAccessor): R;
 	visitLiteralExpression(expr: LiteralExpression): R;
 	visitGroupingExpression(expr: GroupingExpression): R;
-	visitMetadataExpression(expr: MetadataExpression): R;
 	visitArrayExpression(expr: ArrayExpression): R;
+	visitMetadataExpression(expr: MetadataExpression): R;
 	visitStartExpression(expr: StartExpression): R;
 }
 
@@ -127,11 +118,39 @@ interface ExpressionStatement extends Statement {
 	expr: Expression;
 }
 
-interface StoreStatement extends Statement {
+interface PropertyStatement extends Statement {
 	/**
-	 * store NAME (metadata_optional) "Optional value!"
+	 * property name (metadata_optional) "Property value"
 	 */
 	name: Token;
+	value: Expression;
+}
+
+interface ActorStatement extends Statement {
+	/**
+	 * actor IDENTIFIER
+	 */
+	name: Token;
+	value: Expression;
+}
+
+interface DialogueStatement extends Statement {
+	/**
+	 * [IDENTIFIER] "Dialogue" (metadata_optional) with { ...options }
+	 */
+	actor: Token;
+	text: Expression;
+	metadata: Expression | undefined;
+	body: Statement | undefined;
+	options: Array<Statement>;
+}
+
+interface StoreStatement extends Statement {
+	/**
+	 * store name ID (metadata_optional) "Optional value!"
+	 */
+	name: Token;
+	identifier: Token;
 	metadata: Expression | undefined;
 	value: Expression | undefined;
 }
@@ -141,6 +160,7 @@ interface ObjectiveStatement extends Statement {
 	 * objective NAME "Value!"
 	 */
 	name: Token;
+	default: boolean | undefined;
 	value: Expression;
 }
 
@@ -203,6 +223,7 @@ interface SceneStatement extends Statement {
 	 * }
 	 */
 	name: Token;
+	default: boolean | undefined;
 	body: Statement;
 }
 
@@ -229,21 +250,42 @@ interface TriggerStatement extends Statement {
 	 */
 	values: Expression;
 	body: Statement;
-	_type: "array" | "single";
+}
+
+interface InteractStatement extends Statement {
+	/**
+	 * interact BENOIT {
+	 * 	...body
+	 * }
+	 */
+	identifier: Token;
+	body: Statement;
+}
+
+interface EchoStatement extends Statement {
+	/**
+	 * echo ...
+	 */
+	expr: Expression;
 }
 
 export interface Statements {
 	ExpressionStatement: ExpressionStatement;
+	PropertyStatement: PropertyStatement;
+	ActorStatement: ActorStatement;
 	StoreStatement: StoreStatement;
 	ObjectiveStatement: ObjectiveStatement;
 	SetStatement: SetStatement;
 	BlockStatement: BlockStatement;
 	BlockOfConditionsStatement: BlockOfConditionsStatement;
+	DialogueStatement: DialogueStatement;
 	ConditionStatement: ConditionStatement;
 	IfStatement: IfStatement;
 	SceneStatement: SceneStatement;
 	OptionStatement: OptionStatement;
 	TriggerStatement: TriggerStatement;
+	InteractStatement: InteractStatement;
+	EchoStatement: EchoStatement;
 }
 
 export interface Statement {
@@ -253,14 +295,19 @@ export interface Statement {
 
 export interface StatementVisitor<R> {
 	visitExpressionStatement(stmt: ExpressionStatement): R;
-	visitStoreStatement(stmt: StoreStatement): R;
+	visitPropertyStatement(stmt: PropertyStatement): R;
+	visitActorStatement(stmt: ActorStatement): R;
 	visitObjectiveStatement(stmt: ObjectiveStatement): R;
+	visitStoreStatement(stmt: StoreStatement): R;
+	visitSetStatement(stmt: SetStatement): R;
 	visitBlockStatement(stmt: BlockStatement): R;
 	visitBlockOfConditionsStatement(stmt: BlockOfConditionsStatement): R;
+	visitDialogueStatement(stmt: DialogueStatement): R;
 	visitConditionStatement(stmt: ConditionStatement): R;
 	visitIfStatement(stmt: IfStatement): R;
 	visitSceneStatement(stmt: SceneStatement): R;
-	visitSetStatement(stmt: SetStatement): R;
 	visitOptionStatement(stmt: OptionStatement): R;
 	visitTriggerStatement(stmt: TriggerStatement): R;
+	visitInteractStatement(stmt: InteractStatement): R;
+	visitEchoStatement(stmt: EchoStatement): R;
 }
