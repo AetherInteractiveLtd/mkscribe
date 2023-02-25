@@ -17,11 +17,11 @@ export declare type Token = {
 	end: number;
 };
 
-export interface ScannerImplementation {
+export interface TokenizerImplementation {
 	/**
 	 * Scans all tokens within the source string provided.
 	 */
-	scanTokens(): Array<Token>;
+	scan(): Array<Token>;
 
 	/**
 	 * Returns whether it's a digit (number) or not

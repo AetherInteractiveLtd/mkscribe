@@ -1,8 +1,8 @@
-import { TokenLiteralType, ScannerImplementation, Token, TokenLiteral } from "./types";
+import { TokenLiteralType, TokenizerImplementation, Token, TokenLiteral } from "./types";
 import { charAt, charCodeAt, Keywords, Symbols, TokenType } from "./utils";
 import { KeywordsType, TokensSymbols } from "./utils/types";
 
-export default class Scanner implements ScannerImplementation {
+export class Tokenizer implements TokenizerImplementation {
 	private tokens = new Array<Token>();
 
 	private start = 0;
@@ -24,7 +24,7 @@ export default class Scanner implements ScannerImplementation {
 
 	constructor(private readonly source: string) {}
 
-	public scanTokens(): Array<Token> {
+	public scan(): Array<Token> {
 		while (!this.isEOF()) {
 			this.start = this.current;
 			this.scanToken();
@@ -209,7 +209,7 @@ export default class Scanner implements ScannerImplementation {
 
 	public isDigit(char: string): boolean {
 		const charCode = charCodeAt(char);
-		const evaluation = charCode >= Scanner._0 && charCode <= Scanner._9;
+		const evaluation = charCode >= Tokenizer._0 && charCode <= Tokenizer._9;
 
 		return evaluation;
 	}
@@ -218,9 +218,9 @@ export default class Scanner implements ScannerImplementation {
 		const charCode = charCodeAt(char);
 		let evaluation;
 		{
-			const isaToz = charCode >= Scanner._a && charCode <= Scanner._z;
-			const isAtoZ = charCode >= Scanner._A && charCode <= Scanner._Z;
-			const isUnderscore = charCode === Scanner._under_score;
+			const isaToz = charCode >= Tokenizer._a && charCode <= Tokenizer._z;
+			const isAtoZ = charCode >= Tokenizer._A && charCode <= Tokenizer._Z;
+			const isUnderscore = charCode === Tokenizer._under_score;
 
 			evaluation = isaToz || isAtoZ || isUnderscore;
 		}

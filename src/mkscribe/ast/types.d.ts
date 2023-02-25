@@ -104,6 +104,7 @@ export interface ExpressionVisitor<R> {
 	visitEnviromentAccessor(expr: EnviromentAccessor): R;
 	visitLiteralExpression(expr: LiteralExpression): R;
 	visitGroupingExpression(expr: GroupingExpression): R;
+	visitArrayExpression(expr: ArrayExpression): R;
 	visitMetadataExpression(expr: MetadataExpression): R;
 	visitStartExpression(expr: StartExpression): R;
 }
@@ -130,6 +131,7 @@ interface ActorStatement extends Statement {
 	 * actor IDENTIFIER
 	 */
 	name: Token;
+	value: Expression;
 }
 
 interface DialogueStatement extends Statement {
@@ -139,14 +141,16 @@ interface DialogueStatement extends Statement {
 	actor: Token;
 	text: Expression;
 	metadata: Expression | undefined;
-	options: Statement | undefined;
+	body: Statement | undefined;
+	options: Array<Statement>;
 }
 
 interface StoreStatement extends Statement {
 	/**
-	 * store NAME (metadata_optional) "Optional value!"
+	 * store name ID (metadata_optional) "Optional value!"
 	 */
 	name: Token;
+	identifier: Token;
 	metadata: Expression | undefined;
 	value: Expression | undefined;
 }
@@ -156,6 +160,7 @@ interface ObjectiveStatement extends Statement {
 	 * objective NAME "Value!"
 	 */
 	name: Token;
+	default: boolean | undefined;
 	value: Expression;
 }
 
@@ -218,6 +223,7 @@ interface SceneStatement extends Statement {
 	 * }
 	 */
 	name: Token;
+	default: boolean | undefined;
 	body: Statement;
 }
 
@@ -246,6 +252,16 @@ interface TriggerStatement extends Statement {
 	body: Statement;
 }
 
+interface InteractStatement extends Statement {
+	/**
+	 * interact BENOIT {
+	 * 	...body
+	 * }
+	 */
+	identifier: Token;
+	body: Statement;
+}
+
 interface EchoStatement extends Statement {
 	/**
 	 * echo ...
@@ -268,6 +284,7 @@ export interface Statements {
 	SceneStatement: SceneStatement;
 	OptionStatement: OptionStatement;
 	TriggerStatement: TriggerStatement;
+	InteractStatement: InteractStatement;
 	EchoStatement: EchoStatement;
 }
 
@@ -291,5 +308,6 @@ export interface StatementVisitor<R> {
 	visitSceneStatement(stmt: SceneStatement): R;
 	visitOptionStatement(stmt: OptionStatement): R;
 	visitTriggerStatement(stmt: TriggerStatement): R;
+	visitInteractStatement(stmt: InteractStatement): R;
 	visitEchoStatement(stmt: EchoStatement): R;
 }

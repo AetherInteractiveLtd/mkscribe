@@ -1,16 +1,26 @@
-import { ScribeBuilder } from "./scribe";
-import { ScribeRuntimeImplementation } from "./scribe/types";
+import Builder from "./mkscribe";
+import { Statement } from "./mkscribe/ast/types";
 
 export namespace MkScribe {
-	export function load(source: string): ScribeRuntimeImplementation {
-		return new ScribeBuilder(source);
+	export function build(source: string): Array<Statement> {
+		const tokens = Builder.tokenize(source);
+
+		return Builder.parse(tokens);
+	}
+
+	export function bytecode(ast: Array<Statement>): void {
+		return Builder.bytecode(ast);
+	}
+
+	export function builder(): typeof Builder {
+		return Builder;
 	}
 }
 
-export { TokenType } from "./scribe/scanner/utils";
-export { Token, TokenLiteralType } from "./scribe/scanner/types";
+export { TokenType } from "./mkscribe/scanner/utils";
+export { Token, TokenLiteralType } from "./mkscribe/scanner/types";
 
-export { ExpressionType, StatementType } from "./scribe/ast";
+export { ExpressionType, StatementType } from "./mkscribe/ast";
 export {
 	Statements,
 	Statement,
@@ -18,4 +28,4 @@ export {
 	Expression,
 	Expressions,
 	ExpressionVisitor,
-} from "./scribe/ast/types";
+} from "./mkscribe/ast/types";

@@ -28,6 +28,7 @@ export enum StatementType {
 	SCENE = "SceneStatement",
 	OPTION = "OptionStatement",
 	TRIGGER = "TriggerStatement",
+	INTERACT = "InteractStatement",
 	ECHO = "EchoStatement",
 }
 
