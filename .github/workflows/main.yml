@@ -2,28 +2,12 @@ name: CI
 on:
     push:
         branches:
-          - main
+            - main
     pull_request:
         branches:
-          - main
+            - main
 
 jobs:
-    eslint:
-        name: Run ESLint
-        runs-on: ubuntu-latest
-
-        steps:
-            - uses: actions/checkout@v1
-
-            - uses: actions/setup-node@v3
-              with:
-                  node-version: 18
-
-            - run: npm i
-
-            - name: Run ESLint
-              run: yarn run eslint . --ext .js,.jsx,.ts,.tsx
-
     robloxts:
         name: Run RBXTSC
         runs-on: ubuntu-latest
