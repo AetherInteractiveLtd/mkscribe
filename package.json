@@ -6,7 +6,7 @@
 	"scripts": {
 		"build": "rbxtsc",
 		"watch": "rbxtsc -w",
-		"prepublish": "npm run build && npm run build && mkdir && npm pack --pack-destination=./build",
+		"prepublish": "npm run build && npm run build && mkdir build && npm pack --pack-destination=build",
 		"prepare": "husky install"
 	},
 	"exports": "./out/index.d.ts",
