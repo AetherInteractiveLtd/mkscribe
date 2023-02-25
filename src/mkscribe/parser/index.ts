@@ -7,7 +7,7 @@ import {
 	ConditionStatement,
 	DialogueStatement,
 	EchoStatement,
-	EnviromentAccessor,
+	EnvironmentAccessor,
 	Expression,
 	ExpressionStatement,
 	GroupingExpression,
@@ -241,7 +241,7 @@ export class Parser implements ParserImplementation {
 		return newExpression(ExpressionType.LITERAL, { value: value as never, dataType });
 	}
 
-	private accessor(): EnviromentAccessor {
+	private accessor(): EnvironmentAccessor {
 		return newExpression(ExpressionType.ENV, { name: this.previous() });
 	}
 

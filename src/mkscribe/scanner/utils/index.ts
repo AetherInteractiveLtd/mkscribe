@@ -39,6 +39,7 @@ export enum TokenType {
 	NUMBER = "Number",
 
 	// Keywords
+	DEFAULT = "Default",
 	AND = "And",
 	OR = "Or",
 	NOT = "Not",
@@ -67,6 +68,7 @@ export enum TokenType {
 }
 
 export const Keywords: KeywordsType = {
+	default: TokenType.DEFAULT,
 	and: TokenType.AND,
 	or: TokenType.OR,
 	not: TokenType.NOT,

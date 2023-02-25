@@ -5,7 +5,7 @@ export enum ExpressionType {
 	UNARY = "UnaryExpression",
 	TERNARY = "TernaryExpression",
 	VARIABLE = "VariableExpression",
-	ENV = "EnviromentAccessor",
+	ENV = "EnvironmentAccessor",
 	LITERAL = "LiteralExpression",
 	GROUPING = "GroupingExpression",
 	ARRAY = "ArrayExpression",
@@ -29,6 +29,7 @@ export enum StatementType {
 	SCENE = "SceneStatement",
 	OPTION = "OptionStatement",
 	TRIGGER = "TriggerStatement",
+	INTERACT = "InteractStatement",
 	ECHO = "EchoStatement",
 }
 

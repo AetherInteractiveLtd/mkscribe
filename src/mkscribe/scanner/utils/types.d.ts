@@ -1,6 +1,7 @@
 import { TokenType } from ".";
 
 declare type KeywordStrings =
+	| "default"
 	| "and"
 	| "or"
 	| "not"
