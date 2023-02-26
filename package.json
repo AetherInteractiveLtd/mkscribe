@@ -1,6 +1,6 @@
 {
-	"name": "@aetherinteractiveltd/mkscribe",
-	"version": "1.0.0",
+	"name": "@aethergames/mkscribe",
+	"version": "0.1.0",
 	"description": "Portable AST Generator for the Scribe interpreted language written in TypeScript.",
 	"main": "out/init.lua",
 	"scripts": {
@@ -23,8 +23,7 @@
 		"url": "https://github.com/AetherInteractiveLtd/mkscribe.git"
 	},
 	"publishConfig": {
-		"access": "public",
-		"registry": "https://npm.pkg.github.com/@AetherInteractiveLtd"
+		"access": "public"
 	},
 	"devDependencies": {
 		"@rbxts/compiler-types": "^2.0.4-types.1",

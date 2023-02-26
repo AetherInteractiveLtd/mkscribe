@@ -8,10 +8,6 @@ export namespace MkScribe {
 		return Builder.parse(tokens);
 	}
 
-	export function bytecode(ast: Array<Statement>): void {
-		return Builder.bytecode(ast);
-	}
-
 	export function builder(): typeof Builder {
 		return Builder;
 	}
