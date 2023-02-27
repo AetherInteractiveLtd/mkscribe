@@ -343,10 +343,6 @@ export class Tokenizer implements TokenizerImplementation {
 		const identifier = this.source.sub(this.start, this.current - 1);
 
 		if (identifier in Keywords) {
-			if (identifier === "true" || identifier === "false") {
-				return this.addToken(Keywords[identifier as keyof KeywordsType], identifier, "boolean");
-			}
-
 			this.addToken(Keywords[identifier as keyof KeywordsType]);
 		} else {
 			this.addToken(TokenType.IDENTIFIER);

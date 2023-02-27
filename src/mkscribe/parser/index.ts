@@ -38,19 +38,16 @@ export class Parser implements ParserImplementation {
 
 		while (!this.isEOF()) {
 			try {
-				stmts.push(this.parseToken());
+				const declared = this.declare();
+				stmts.push(declared);
 			} catch (_error) {
 				warn(_error);
 
-				this.step(); // Doesn't interrupt, and gets all errors in a go.
+				this.step();
 			}
 		}
 
 		return stmts;
-	}
-
-	private parseToken(): Statement {
-		return this.declare();
 	}
 
 	private error(token: Token, message?: string): string {
