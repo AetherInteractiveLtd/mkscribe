@@ -109,7 +109,7 @@ export interface ExpressionVisitor<R> {
 	visitUnaryExpression(expr: UnaryExpression): R;
 	visitTernaryExpression(expr: TernaryExpression): R;
 	visitVariableExpression(expr: VariableExpression): R;
-	visitEnviromentAccessor(expr: EnvironmentAccessor): R;
+	visitEnvironmentAccessor(expr: EnvironmentAccessor): R;
 	visitLiteralExpression(expr: LiteralExpression): R;
 	visitGroupingExpression(expr: GroupingExpression): R;
 	visitArrayExpression(expr: ArrayExpression): R;
