@@ -1,6 +1,6 @@
 {
 	"name": "@aethergames/mkscribe",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Portable AST Generator for the Scribe interpreted language written in TypeScript.",
 	"main": "out/init.lua",
 	"scripts": {
