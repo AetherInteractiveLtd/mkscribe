@@ -484,10 +484,10 @@ export class Parser implements ParserImplementation {
 
 		let _default: boolean | undefined;
 		if (previous.type === TokenType.DEFAULT) {
+			this.consume(TokenType.SCENE, "Did you meant to define a default scene.");
 			_default = true;
 		}
 
-		this.consume(TokenType.SCENE, "Did you meant to define a default scene.");
 		const name = this.consume(TokenType.IDENTIFIER, "Expected a scene identifier.");
 
 		this.consume(TokenType.L_B, `Expected "{" after a scene for the body start.`);
