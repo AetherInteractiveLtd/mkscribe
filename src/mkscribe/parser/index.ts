@@ -484,6 +484,7 @@ export class Parser implements ParserImplementation {
 
 		let _default: boolean | undefined;
 		if (previous.type === TokenType.DEFAULT) {
+			this.consume(TokenType.SCENE, "Did you meant to define a default scene.");
 			_default = true;
 		}
 
