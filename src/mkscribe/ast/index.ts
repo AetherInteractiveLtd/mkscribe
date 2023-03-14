@@ -22,7 +22,7 @@ export enum StatementType {
 	OBJECTIVE = "ObjectiveStatement",
 	SET = "SetStatement",
 	BLOCK = "BlockStatement",
-	BLOCK_OF_CONDITIONS = "BlockOfConditionsStatement",
+	DO = "DoStatement",
 	DIALOGUE = "DialogueStatement",
 	CONDITION = "ConditionStatement",
 	IF = "IfStatement",

@@ -1,6 +1,6 @@
 import { TokenLiteralType, TokenizerImplementation, Token, TokenLiteral } from "./types";
 import { charAt, charCodeAt, Keywords, Symbols, TokenType } from "./utils";
-import { KeywordsType, TokensSymbols } from "./utils/types";
+import { KeywordsType, SymbolsType } from "./utils/types";
 
 export class Tokenizer implements TokenizerImplementation {
 	private tokens = new Array<Token>();
@@ -44,43 +44,36 @@ export class Tokenizer implements TokenizerImplementation {
 		switch (char) {
 			case "#": {
 				while (this.peek() !== "\n" && !this.isEOF()) {
-					this.step(); // We consume the whole line so the comment isn't take in consideration.
+					this.step();
 				}
 
 				break;
 			}
 
 			case "-": {
-				const tokentype = this.stepIfMatches(">") ? TokenType.CONTINUE : TokenType.MINUS;
-				this.addToken(tokentype);
+				this.addToken(this.stepIfMatches(">") ? TokenType.CONTINUE : TokenType.MINUS);
 
 				break;
 			}
 
 			case "=": {
-				const tokenType = this.stepIfMatches("=") ? TokenType.E_E : TokenType.EQUAL;
-				this.addToken(tokenType);
+				this.addToken(this.stepIfMatches("=") ? TokenType.E_E : TokenType.EQUAL);
 
 				break;
 			}
 
 			case ">": {
-				const tokenType = this.stepIfMatches("=") ? TokenType.G_E : TokenType.GREATER;
-				this.addToken(tokenType);
+				this.addToken(this.stepIfMatches("=") ? TokenType.G_E : TokenType.GREATER);
 
 				break;
 			}
 
 			case "<": {
-				const tokenType = this.stepIfMatches("=") ? TokenType.L_E : TokenType.LESS;
-				this.addToken(tokenType);
+				this.addToken(this.stepIfMatches("=") ? TokenType.L_E : TokenType.LESS);
 
 				break;
 			}
 
-			/**
-			 * Blank spaces and breaking lines
-			 */
 			case " ": {
 				break;
 			}
@@ -94,14 +87,11 @@ export class Tokenizer implements TokenizerImplementation {
 			}
 
 			case "\n": {
-				this.line++; // We step over to the next line, helps for the lexical errors.
+				this.line++;
 
 				break;
 			}
 
-			/**
-			 * Individual case for strings
-			 */
 			case '"': {
 				this.string('"');
 
@@ -127,10 +117,7 @@ export class Tokenizer implements TokenizerImplementation {
 					this.identifier();
 				} else {
 					if (char in Symbols) {
-						/**
-						 * We consume the token as a symbol we already got.
-						 */
-						this.addToken(Symbols[char as keyof TokensSymbols]);
+						this.addToken(Symbols[char as SymbolsType]);
 					} else {
 						warn(`[Scribe:LexicalError]: Unexpected "${char}" on line: ${this.line}`);
 					}
@@ -183,21 +170,12 @@ export class Tokenizer implements TokenizerImplementation {
 	 */
 	private addToken(tokenType: TokenType, literal: TokenLiteral, literalType: TokenLiteralType): void;
 
-	private addToken(tokenType: unknown, literal?: unknown, literalType?: TokenLiteralType): void {
+	private addToken(tokenType: TokenType, literal?: TokenLiteral, literalType?: TokenLiteralType): void {
 		const start = this.start;
 		const current = this.current - (this.current >= this.source.size() ? 0 : 1);
 		const lexeme = this.source.sub(start, current);
 
-		this.tokens.push(
-			this.createToken(
-				tokenType as TokenType,
-				literal as TokenLiteral,
-				literalType || "undefined",
-				lexeme,
-				start,
-				current,
-			),
-		);
+		this.tokens.push(this.createToken(tokenType, literal, literalType || "undefined", lexeme, start, current));
 	}
 
 	/**
@@ -216,6 +194,7 @@ export class Tokenizer implements TokenizerImplementation {
 
 	public isAlpha(char: string): boolean {
 		const charCode = charCodeAt(char);
+
 		let evaluation;
 		{
 			const isaToz = charCode >= Tokenizer._a && charCode <= Tokenizer._z;
@@ -319,7 +298,7 @@ export class Tokenizer implements TokenizerImplementation {
 		}
 
 		if (this.peek() === "s") {
-			this.step(); // Consume the 's'
+			this.step();
 
 			_type = TokenType.SECONDS;
 			_dataType = "seconds";
@@ -343,7 +322,7 @@ export class Tokenizer implements TokenizerImplementation {
 		const identifier = this.source.sub(this.start, this.current - 1);
 
 		if (identifier in Keywords) {
-			this.addToken(Keywords[identifier as keyof KeywordsType]);
+			this.addToken(Keywords[identifier as KeywordsType]);
 		} else {
 			this.addToken(TokenType.IDENTIFIER);
 		}

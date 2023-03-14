@@ -1,8 +1,6 @@
 import { ExpressionType, StatementType } from ".";
 import { TokenLiteralType, Token, TokenLiteral } from "../scanner/types";
 
-/** Expressions */
-
 interface BinaryExpression extends Expression {
 	/**
 	 * left (operator) right
@@ -117,12 +115,7 @@ export interface ExpressionVisitor<R> {
 	visitStartExpression(expr: StartExpression): R;
 }
 
-/** Statements */
-
 interface ExpressionStatement extends Statement {
-	/**
-	 * Whatever an expression may be
-	 */
 	expr: Expression;
 }
 
@@ -189,15 +182,13 @@ interface BlockStatement extends Statement {
 	statements: Array<Statement>;
 }
 
-interface BlockOfConditionsStatement extends Statement {
+interface DoStatement extends Statement {
 	/**
-	 * {
-	 * 	condition -> {
-	 * 		...body
-	 * 	}
+	 * do {
+	 * 	...body
 	 * }
 	 */
-	conditions: Array<ConditionStatement>;
+	body: Statement;
 }
 
 interface ConditionStatement extends Statement {
@@ -219,8 +210,15 @@ interface IfStatement extends Statement {
 	 * if {
 	 * 	...body (conditions, if not, it will throw an error)
 	 * }
+	 *
+	 * if condition -> {
+	 * 	...body
+	 * } else {
+	 * 	...body
+	 * }
 	 */
 	condition: Expression | undefined;
+	else?: Statement;
 	body: Statement;
 }
 
@@ -285,7 +283,7 @@ export interface Statements {
 	ObjectiveStatement: ObjectiveStatement;
 	SetStatement: SetStatement;
 	BlockStatement: BlockStatement;
-	BlockOfConditionsStatement: BlockOfConditionsStatement;
+	DoStatement: DoStatement;
 	DialogueStatement: DialogueStatement;
 	ConditionStatement: ConditionStatement;
 	IfStatement: IfStatement;
@@ -309,7 +307,7 @@ export interface StatementVisitor<R> {
 	visitStoreStatement(stmt: StoreStatement): R;
 	visitSetStatement(stmt: SetStatement): R;
 	visitBlockStatement(stmt: BlockStatement): R;
-	visitBlockOfConditionsStatement(stmt: BlockOfConditionsStatement): R;
+	visitDoStatement(stmt: DoStatement): R;
 	visitDialogueStatement(stmt: DialogueStatement): R;
 	visitConditionStatement(stmt: ConditionStatement): R;
 	visitIfStatement(stmt: IfStatement): R;

@@ -2,10 +2,10 @@ import { newExpression, newStatement, ExpressionType, StatementType } from "../a
 import {
 	ArrayExpression,
 	BinaryExpression,
-	BlockOfConditionsStatement,
 	BlockStatement,
 	ConditionStatement,
 	DialogueStatement,
+	DoStatement,
 	EchoStatement,
 	EnvironmentAccessor,
 	Expression,
@@ -129,7 +129,7 @@ export class Parser implements ParserImplementation {
 
 		if (this.match(TokenType.CONTINUE)) {
 			if (this.isType(TokenType.L_B)) {
-				return expr;
+				return this.condition(expr) as never;
 			} else {
 				return this.ternary(expr);
 			}
@@ -150,6 +150,8 @@ export class Parser implements ParserImplementation {
 				TokenType.STAR,
 				TokenType.MINUS,
 				TokenType.PLUS,
+				TokenType.EXPONENTIAL,
+				TokenType.MODULUS,
 				TokenType.SLASH,
 				TokenType.EQUAL,
 				TokenType.GREATER,
@@ -314,6 +316,10 @@ export class Parser implements ParserImplementation {
 			return this.scene();
 		}
 
+		if (this.match(TokenType.DO)) {
+			return this.do();
+		}
+
 		if (this.match(TokenType.INTERACT)) {
 			return this.interact();
 		}
@@ -382,7 +388,8 @@ export class Parser implements ParserImplementation {
 		return newStatement(_type, { name, value, metadata, identifier, default: _default } as never);
 	}
 
-	private block(): BlockStatement {
+	private block(consumingMessage: string): BlockStatement {
+		this.consume(TokenType.L_B, consumingMessage);
 		const statements: Array<Statement> = new Array();
 
 		while (!this.isEOF()) {
@@ -398,20 +405,8 @@ export class Parser implements ParserImplementation {
 		return newStatement(StatementType.BLOCK, { statements });
 	}
 
-	private conditionsBlock(): BlockOfConditionsStatement {
-		const conditions: Array<ConditionStatement> = new Array();
-
-		while (!this.isEOF()) {
-			if (this.isType(TokenType.R_B)) {
-				this.consume(TokenType.R_B, "Expected '}' to close a block.");
-
-				break;
-			}
-
-			conditions.push(this.condition());
-		}
-
-		return newStatement(StatementType.BLOCK_OF_CONDITIONS, { conditions });
+	private do(): DoStatement {
+		return newStatement(StatementType.DO, { body: this.block(`Expected a "{" to open a do's body.`) });
 	}
 
 	private dialogue(): DialogueStatement {
@@ -427,8 +422,7 @@ export class Parser implements ParserImplementation {
 
 		let body: BlockStatement | undefined;
 		if (this.match(TokenType.WITH)) {
-			this.consume(TokenType.L_B, `Expected an opening for a dialogue's body.`);
-			body = this.block();
+			body = this.block("Expected an opening for a dialogue's body.");
 		}
 
 		const options: Array<Statement> = [];
@@ -443,13 +437,11 @@ export class Parser implements ParserImplementation {
 		return newStatement(StatementType.DIALOGUE, { actor, text, metadata, options, body });
 	}
 
-	private condition(): ConditionStatement {
-		const condition = this.express();
-
-		this.consume(TokenType.L_B, `Expected "{" after -> to start a condition's body.`);
-		const body = this.block();
-
-		return newStatement(StatementType.CONDITION, { condition, body });
+	private condition(condition: Expression): ConditionStatement {
+		return newStatement(StatementType.CONDITION, {
+			condition,
+			body: this.block(`Expected "{" after -> to start a condition's body.`),
+		});
 	}
 
 	private if(): IfStatement {
@@ -467,16 +459,20 @@ export class Parser implements ParserImplementation {
 			condition = this.express();
 		}
 
-		let body: BlockStatement | BlockOfConditionsStatement;
+		let body: BlockStatement;
+		let elseBody: BlockStatement | undefined;
+
 		if (condition !== undefined) {
-			this.consume(TokenType.L_B, `Expected "{" after a -> for the body start.`);
-			body = this.block();
+			body = this.block(`Expected "{" after a -> for the body start.`);
+
+			if (this.match(TokenType.ELSE)) {
+				elseBody = this.block(`Expected "{" after an else for the body start.`);
+			}
 		} else {
-			this.consume(TokenType.L_B, `Expected "{" after an if`);
-			body = this.conditionsBlock();
+			body = this.block(`Expected "{" after an if`);
 		}
 
-		return newStatement(StatementType.IF, { condition, body });
+		return newStatement(StatementType.IF, { condition, body, else: elseBody });
 	}
 
 	private scene(): SceneStatement {
@@ -484,15 +480,13 @@ export class Parser implements ParserImplementation {
 
 		let _default: boolean | undefined;
 		if (previous.type === TokenType.DEFAULT) {
-			this.consume(TokenType.SCENE, "Did you meant to define a default scene.");
 			_default = true;
 		}
 
 		this.consume(TokenType.SCENE, "Did you meant to define a default scene.");
-		const name = this.consume(TokenType.IDENTIFIER, "Expected a scene identifier.");
 
-		this.consume(TokenType.L_B, `Expected "{" after a scene for the body start.`);
-		const body = this.block();
+		const name = this.consume(TokenType.IDENTIFIER, "Expected a scene identifier.");
+		const body = this.block(`Expected "{" after a scene for the body start.`);
 
 		return newStatement(StatementType.SCENE, { name, body, default: _default });
 	}
@@ -505,26 +499,21 @@ export class Parser implements ParserImplementation {
 			metadata = this.metadata();
 		}
 
-		this.consume(TokenType.L_B, `Expected "{" to start the option's body.`);
-		const body = this.block();
+		const body = this.block(`Expected "{" to start the option's body.`);
 
 		return newStatement(StatementType.OPTION, { value, metadata, body });
 	}
 
 	private trigger(): TriggerStatement {
 		const values = this.express();
-
-		this.consume(TokenType.L_B, `Expected "{" to start the trigger's body.`);
-		const body = this.block();
+		const body = this.block(`Expected "{" to start the trigger's body.`);
 
 		return newStatement(StatementType.TRIGGER, { values, body });
 	}
 
 	private interact(): InteractStatement {
 		const identifier = this.consume(TokenType.IDENTIFIER, `Expected an identifier for the interaction.`);
-
-		this.consume(TokenType.L_B, `Expected "{" to start the interaction's body.`);
-		const body = this.block();
+		const body = this.block(`Expected "{" to start the interaction's body.`);
 
 		return newStatement(StatementType.INTERACT, { identifier, body });
 	}

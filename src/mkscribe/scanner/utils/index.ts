@@ -1,5 +1,3 @@
-import { KeywordsType, TokensSymbols } from "./types";
-
 export enum TokenType {
 	// Grouping or enclosing
 	L_P = "Left_Parenthesis",
@@ -16,6 +14,8 @@ export enum TokenType {
 	PLUS = "Plus",
 	SLASH = "Slash",
 	STAR = "Star",
+	EXPONENTIAL = "Exponential",
+	MODULUS = "Modulus",
 
 	HASH = "Hash", // # (for comments)
 	COMMA = "Comma", // , (for detailing multiple items, mostly for arrays and matches)
@@ -40,10 +40,12 @@ export enum TokenType {
 
 	// Keywords
 	DEFAULT = "Default",
+	DO = "Do",
 	AND = "And",
 	OR = "Or",
 	NOT = "Not",
 	IF = "If",
+	ELSE = "Else",
 	TRUE = "True",
 	FALSE = "False",
 	OBJECTIVE = "Objective",
@@ -67,12 +69,14 @@ export enum TokenType {
 	EOF = "End_of_file", // this is kinda necessary at the moment to tell the tokenizer when the end has been reached
 }
 
-export const Keywords: KeywordsType = {
+export const Keywords = {
 	default: TokenType.DEFAULT,
+	do: TokenType.DO,
 	and: TokenType.AND,
 	or: TokenType.OR,
 	not: TokenType.NOT,
 	if: TokenType.IF,
+	else: TokenType.ELSE,
 	true: TokenType.TRUE,
 	false: TokenType.FALSE,
 	objective: TokenType.OBJECTIVE,
@@ -91,7 +95,7 @@ export const Keywords: KeywordsType = {
 	exit: TokenType.EXIT,
 };
 
-export const Symbols: TokensSymbols = {
+export const Symbols = {
 	"(": TokenType.L_P,
 	")": TokenType.R_P,
 	"{": TokenType.L_B,
@@ -101,6 +105,8 @@ export const Symbols: TokensSymbols = {
 	"+": TokenType.PLUS,
 	"/": TokenType.SLASH,
 	"*": TokenType.STAR,
+	"^": TokenType.EXPONENTIAL,
+	"%": TokenType.MODULUS,
 	",": TokenType.COMMA,
 	":": TokenType.COLON,
 };
