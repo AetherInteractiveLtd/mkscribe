@@ -360,10 +360,6 @@ export class Parser implements ParserImplementation {
 			if (this.match(TokenType.OBJECTIVE)) {
 				return this.declaration(StatementType.OBJECTIVE, true, true);
 			}
-
-			if (this.isType(TokenType.SCENE)) {
-				return this.scene();
-			}
 		}
 
 		return this.expressionStatement();
@@ -476,19 +472,10 @@ export class Parser implements ParserImplementation {
 	}
 
 	private scene(): SceneStatement {
-		const previous = this.previous();
-
-		let _default: boolean | undefined;
-		if (previous.type === TokenType.DEFAULT) {
-			_default = true;
-		}
-
-		this.consume(TokenType.SCENE, "Did you meant to define a default scene.");
-
 		const name = this.consume(TokenType.IDENTIFIER, "Expected a scene identifier.");
 		const body = this.block(`Expected "{" after a scene for the body start.`);
 
-		return newStatement(StatementType.SCENE, { name, body, default: _default });
+		return newStatement(StatementType.SCENE, { name, body });
 	}
 
 	private option(): OptionStatement {

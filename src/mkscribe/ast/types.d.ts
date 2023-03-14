@@ -229,7 +229,6 @@ interface SceneStatement extends Statement {
 	 * }
 	 */
 	name: Token;
-	default: boolean | undefined;
 	body: Statement;
 }
 
