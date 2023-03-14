@@ -1,30 +1,4 @@
-import { TokenType } from ".";
+import { Keywords, Symbols } from ".";
 
-declare type KeywordStrings =
-	| "default"
-	| "and"
-	| "or"
-	| "not"
-	| "if"
-	| "true"
-	| "false"
-	| "objective"
-	| "start"
-	| "store"
-	| "set"
-	| "interact"
-	| "scene"
-	| "with"
-	| "option"
-	| "otherwise"
-	| "actor"
-	| "property"
-	| "trigger"
-	| "echo"
-	| "exit";
-
-export declare type KeywordsType = Record<KeywordStrings, TokenType>;
-
-declare type TokensSymbolsString = "(" | ")" | "{" | "}" | "[" | "]" | "+" | "/" | "*" | "," | ":";
-
-export declare type TokensSymbols = Record<TokensSymbolsString, TokenType>;
+export declare type KeywordsType = keyof typeof Keywords;
+export declare type SymbolsType = keyof typeof Symbols;
