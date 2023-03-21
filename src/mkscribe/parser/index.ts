@@ -8,6 +8,7 @@ import {
 	DoStatement,
 	EchoStatement,
 	EnvironmentAccessor,
+	ExitExpression,
 	Expression,
 	ExpressionStatement,
 	GroupingExpression,
@@ -123,6 +124,10 @@ export class Parser implements ParserImplementation {
 
 		if (this.match(TokenType.ENV)) {
 			return this.accessor();
+		}
+
+		if (this.match(TokenType.EXIT)) {
+			return this.exit();
 		}
 
 		const expr = this.expression();
@@ -293,6 +298,10 @@ export class Parser implements ParserImplementation {
 		const objective = this.consume(TokenType.IDENTIFIER, `Expected an objective identifier to start!`);
 
 		return newExpression(ExpressionType.START, { objective });
+	}
+
+	private exit(): ExitExpression {
+		return newExpression(ExpressionType.EXIT, { value: this.express() });
 	}
 
 	/** Statements */
