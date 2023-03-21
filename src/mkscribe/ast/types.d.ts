@@ -113,6 +113,7 @@ export interface ExpressionVisitor<R> {
 	visitArrayExpression(expr: ArrayExpression): R;
 	visitMetadataExpression(expr: MetadataExpression): R;
 	visitStartExpression(expr: StartExpression): R;
+	visitExitExpression(expr: ExitExpression): R;
 }
 
 interface ExpressionStatement extends Statement {
