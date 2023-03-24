@@ -464,17 +464,13 @@ export class Parser implements ParserImplementation {
 			condition = this.express();
 		}
 
-		let body: BlockStatement;
+		const body: BlockStatement = this.block(`Expected "{" after an if`);
+
 		let elseBody: BlockStatement | undefined;
-
 		if (condition !== undefined) {
-			body = this.block(`Expected "{" after a -> for the body start.`);
-
 			if (this.match(TokenType.ELSE)) {
 				elseBody = this.block(`Expected "{" after an else for the body start.`);
 			}
-		} else {
-			body = this.block(`Expected "{" after an if`);
 		}
 
 		return newStatement(StatementType.IF, { condition, body, else: elseBody });
