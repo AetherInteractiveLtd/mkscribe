@@ -10,15 +10,15 @@ export enum TokenType {
 	R_BK = "Right_Bracket", // ] (for arrays)
 
 	// Single character tokens (operators, etc)
+	EXPONENTIAL = "Exponential",
 	MINUS = "Minus",
+	MODULUS = "Modulus",
 	PLUS = "Plus",
 	SLASH = "Slash",
 	STAR = "Star",
-	EXPONENTIAL = "Exponential",
-	MODULUS = "Modulus",
 
-	HASH = "Hash", // # (for comments)
 	COMMA = "Comma", // , (for detailing multiple items, mostly for arrays and matches)
+	HASH = "Hash", // # (for comments)
 
 	EQUAL = "Equal",
 	GREATER = "Greater",
@@ -29,39 +29,40 @@ export enum TokenType {
 	G_E = "Greater_Equal",
 	L_E = "Less_Equal",
 
-	CONTINUE = "Continue",
 	COLON = "Colon",
+	CONTINUE = "Continue",
 
 	// Literals supported
 	IDENTIFIER = "Identifier",
+	NUMBER = "Number",
 	SECONDS = "Seconds",
 	STRING = "String",
-	NUMBER = "Number",
 
 	// Keywords
+	ACTOR = "actor",
+	AND = "And",
 	DEFAULT = "Default",
 	DO = "Do",
-	AND = "And",
-	OR = "Or",
-	NOT = "Not",
-	IF = "If",
+	ECHO = "Echo",
 	ELSE = "Else",
-	TRUE = "True",
+	EXIT = "Exit",
 	FALSE = "False",
+	IF = "If",
+	INTERACT = "Interact",
+	NOT = "Not",
+	OPTION = "Option",
+	PROPERTY = "Property",
 	OBJECTIVE = "Objective",
+	OR = "Or",
+	OTHERWISE = "Otherwise",
+	TRIGGER = "Trigger",
+	TRUE = "True",
+	SET = "Set",
+	SCENE = "Scene",
 	START = "Start",
 	STORE = "Score",
-	SET = "Set",
-	INTERACT = "Interact",
-	SCENE = "Scene",
+	UNDEFINED = "Undefined",
 	WITH = "With",
-	OPTION = "Option",
-	OTHERWISE = "Otherwise",
-	ACTOR = "actor",
-	PROPERTY = "Property",
-	TRIGGER = "Trigger",
-	ECHO = "Echo",
-	EXIT = "Exit",
 
 	// Special characters
 	ENV = "EnviromentAccessor",
@@ -69,29 +70,30 @@ export enum TokenType {
 }
 
 export const Keywords = {
+	actor: TokenType.ACTOR,
+	and: TokenType.AND,
 	default: TokenType.DEFAULT,
 	do: TokenType.DO,
-	and: TokenType.AND,
-	or: TokenType.OR,
-	not: TokenType.NOT,
-	if: TokenType.IF,
+	echo: TokenType.ECHO,
 	else: TokenType.ELSE,
-	true: TokenType.TRUE,
+	exit: TokenType.EXIT,
 	false: TokenType.FALSE,
+	if: TokenType.IF,
+	interact: TokenType.INTERACT,
+	not: TokenType.NOT,
+	option: TokenType.OPTION,
+	property: TokenType.PROPERTY,
 	objective: TokenType.OBJECTIVE,
+	or: TokenType.OR,
+	otherwise: TokenType.OTHERWISE,
+	trigger: TokenType.TRIGGER,
+	true: TokenType.TRUE,
+	set: TokenType.SET,
+	scene: TokenType.SCENE,
 	start: TokenType.START,
 	store: TokenType.STORE,
-	set: TokenType.SET,
-	interact: TokenType.INTERACT,
-	scene: TokenType.SCENE,
+	undefined: TokenType.UNDEFINED,
 	with: TokenType.WITH,
-	option: TokenType.OPTION,
-	otherwise: TokenType.OTHERWISE,
-	actor: TokenType.ACTOR,
-	property: TokenType.PROPERTY,
-	trigger: TokenType.TRIGGER,
-	echo: TokenType.ECHO,
-	exit: TokenType.EXIT,
 };
 
 export const Symbols = {

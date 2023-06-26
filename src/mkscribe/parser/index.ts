@@ -198,7 +198,16 @@ export class Parser implements ParserImplementation {
 	}
 
 	private primary(): Expression {
-		if (this.matches(TokenType.STRING, TokenType.NUMBER, TokenType.FALSE, TokenType.TRUE, TokenType.SECONDS)) {
+		if (
+			this.matches(
+				TokenType.STRING,
+				TokenType.NUMBER,
+				TokenType.FALSE,
+				TokenType.TRUE,
+				TokenType.SECONDS,
+				TokenType.UNDEFINED,
+			)
+		) {
 			return this.literal();
 		}
 
@@ -245,6 +254,7 @@ export class Parser implements ParserImplementation {
 
 	private literal(): LiteralExpression {
 		let value = this.previous();
+
 		const dataType = value.literalType;
 
 		switch (value.lexeme) {
@@ -256,6 +266,12 @@ export class Parser implements ParserImplementation {
 
 			case "true": {
 				value = true as never;
+
+				break;
+			}
+
+			case "undefined": {
+				value = undefined as never;
 
 				break;
 			}
