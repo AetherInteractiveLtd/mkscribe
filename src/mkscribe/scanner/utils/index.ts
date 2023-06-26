@@ -65,8 +65,7 @@ export enum TokenType {
 
 	// Special characters
 	ENV = "EnviromentAccessor",
-
-	EOF = "End_of_file", // this is kinda necessary at the moment to tell the tokenizer when the end has been reached
+	EOF = "EndOfFile",
 }
 
 export const Keywords = {

@@ -25,6 +25,7 @@ export enum StatementType {
 	DO = "DoStatement",
 	DIALOGUE = "DialogueStatement",
 	CONDITION = "ConditionStatement",
+	OTHERWISE = "OtherwiseStatement",
 	IF = "IfStatement",
 	SCENE = "SceneStatement",
 	OPTION = "OptionStatement",
@@ -53,7 +54,6 @@ export function newExpression<T extends ExpressionType>(
 		 * type.
 		 *
 		 * @param visitor the visitor (the resolver for the different expressions)
-		 * @returns whatever the visitor may return.
 		 */
 		accept<R>(visitor: ExpressionVisitor<R>): R {
 			return visitor[`visit${exprType}` as keyof ExpressionVisitor<R>](this as never);
@@ -83,7 +83,6 @@ export function newStatement<T extends StatementType>(
 		 * type.
 		 *
 		 * @param visitor the visitor (the resolver for the different statements)
-		 * @returns whatever the visitor may return.
 		 */
 		accept<R>(visitor: StatementVisitor<R>): R {
 			return visitor[`visit${stmtType}` as keyof StatementVisitor<R>](this);

@@ -195,10 +195,19 @@ interface DoStatement extends Statement {
 interface ConditionStatement extends Statement {
 	/**
 	 * condition -> {
-	 * 	...body (either a nested condition or whatever)
+	 * 	...body
 	 * }
 	 */
 	condition: Expression;
+	body: Statement;
+}
+
+interface OtherwiseStatement extends Statement {
+	/**
+	 * otherwise -> {
+	 * 	...body
+	 * }
+	 */
 	body: Statement;
 }
 
@@ -208,14 +217,20 @@ interface IfStatement extends Statement {
 	 * 	...body (either a nested if or whatever you may want to have here)
 	 * }
 	 *
-	 * if {
-	 * 	...body (conditions, if not, it will throw an error)
-	 * }
-	 *
 	 * if condition -> {
 	 * 	...body
 	 * } else {
 	 * 	...body
+	 * }
+	 *
+	 * if {
+	 * 	condition -> {
+	 * 		...body
+	 * 	}
+	 *
+	 * 	otherwise -> { // Optional otherwise (behaves as an else)
+	 * 		...body
+	 * 	}
 	 * }
 	 */
 	condition: Expression | undefined;
@@ -286,6 +301,7 @@ export interface Statements {
 	DoStatement: DoStatement;
 	DialogueStatement: DialogueStatement;
 	ConditionStatement: ConditionStatement;
+	OtherwiseStatement: OtherwiseStatement;
 	IfStatement: IfStatement;
 	SceneStatement: SceneStatement;
 	OptionStatement: OptionStatement;
@@ -309,7 +325,6 @@ export interface StatementVisitor<R> {
 	visitBlockStatement(stmt: BlockStatement): R;
 	visitDoStatement(stmt: DoStatement): R;
 	visitDialogueStatement(stmt: DialogueStatement): R;
-	visitConditionStatement(stmt: ConditionStatement): R;
 	visitIfStatement(stmt: IfStatement): R;
 	visitSceneStatement(stmt: SceneStatement): R;
 	visitOptionStatement(stmt: OptionStatement): R;
