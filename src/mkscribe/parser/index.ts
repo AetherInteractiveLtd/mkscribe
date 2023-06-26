@@ -17,6 +17,7 @@ import {
 	LiteralExpression,
 	MetadataExpression,
 	OptionStatement,
+	OtherwiseStatement,
 	SceneStatement,
 	StartExpression,
 	Statement,
@@ -349,6 +350,10 @@ export class Parser implements ParserImplementation {
 			return this.option();
 		}
 
+		if (this.match(TokenType.OTHERWISE)) {
+			return this.otherwise();
+		}
+
 		if (this.match(TokenType.TRIGGER)) {
 			return this.trigger();
 		}
@@ -366,7 +371,7 @@ export class Parser implements ParserImplementation {
 		}
 
 		if (this.match(TokenType.DEFAULT)) {
-			if (this.match(TokenType.OBJECTIVE)) {
+			if (this.consume(TokenType.OBJECTIVE, "You can only set objectives to be default.")) {
 				return this.declaration(StatementType.OBJECTIVE, true, true);
 			}
 		}
@@ -445,6 +450,14 @@ export class Parser implements ParserImplementation {
 	private condition(condition: Expression): ConditionStatement {
 		return newStatement(StatementType.CONDITION, {
 			condition,
+			body: this.block(`Expected "{" after -> to start a condition's body.`),
+		});
+	}
+
+	private otherwise(): OtherwiseStatement {
+		this.consume(TokenType.CONTINUE, "Expected -> after otherwise to start it's body.");
+
+		return newStatement(StatementType.OTHERWISE, {
 			body: this.block(`Expected "{" after -> to start a condition's body.`),
 		});
 	}
