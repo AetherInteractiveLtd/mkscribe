@@ -68,6 +68,16 @@ interface StartExpression extends Expression {
 	objective: Token;
 }
 
+interface MacroExpression extends Expression {
+	/**
+	 * $macro(...)
+	 *
+	 * Avaiable macros: $format(), $echo()
+	 */
+	name: Token;
+	args: Array<Expression>;
+}
+
 interface MetadataExpression extends Expression {
 	/** (..., ..., ...)
 	 *
@@ -94,6 +104,7 @@ export interface Expressions {
 	ArrayExpression: ArrayExpression;
 	MetadataExpression: MetadataExpression;
 	StartExpression: StartExpression;
+	MacroExpression: MacroExpression;
 	ExitExpression: ExitExpression;
 }
 
@@ -113,6 +124,7 @@ export interface ExpressionVisitor<R> {
 	visitArrayExpression(expr: ArrayExpression): R;
 	visitMetadataExpression(expr: MetadataExpression): R;
 	visitStartExpression(expr: StartExpression): R;
+	visitMacroExpression(expr: MacroExpression): R;
 	visitExitExpression(expr: ExitExpression): R;
 }
 
@@ -283,13 +295,6 @@ interface InteractStatement extends Statement {
 	body: Statement;
 }
 
-interface EchoStatement extends Statement {
-	/**
-	 * echo ...
-	 */
-	expr: Expression;
-}
-
 export interface Statements {
 	ExpressionStatement: ExpressionStatement;
 	PropertyStatement: PropertyStatement;
@@ -307,7 +312,6 @@ export interface Statements {
 	OptionStatement: OptionStatement;
 	TriggerStatement: TriggerStatement;
 	InteractStatement: InteractStatement;
-	EchoStatement: EchoStatement;
 }
 
 export interface Statement {
@@ -330,5 +334,4 @@ export interface StatementVisitor<R> {
 	visitOptionStatement(stmt: OptionStatement): R;
 	visitTriggerStatement(stmt: TriggerStatement): R;
 	visitInteractStatement(stmt: InteractStatement): R;
-	visitEchoStatement(stmt: EchoStatement): R;
 }

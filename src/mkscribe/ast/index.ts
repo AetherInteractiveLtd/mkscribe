@@ -11,6 +11,7 @@ export enum ExpressionType {
 	ARRAY = "ArrayExpression",
 	METADATA = "MetadataExpression",
 	START = "StartExpression",
+	MACRO = "MacroExpression",
 	EXIT = "ExitExpression",
 }
 
@@ -31,7 +32,6 @@ export enum StatementType {
 	OPTION = "OptionStatement",
 	TRIGGER = "TriggerStatement",
 	INTERACT = "InteractStatement",
-	ECHO = "EchoStatement",
 }
 
 /**
