@@ -1,12 +1,12 @@
 {
 	"name": "@aethergames/mkscribe",
-	"version": "0.5.0-beta.1",
+	"version": "0.5.1-beta.1",
 	"description": "Portable AST Generator for the Scribe interpreted language written in TypeScript.",
 	"main": "out/init.lua",
 	"scripts": {
 		"build": "rbxtsc",
 		"watch": "rbxtsc -w",
-		"prepublish": "npm run build && npm run build && mkdir build && npm pack --pack-destination=build",
+		"prepublish": "npm run build && mkdir build && npm pack --pack-destination=build",
 		"prepare": "husky install"
 	},
 	"exports": "./out/index.d.ts",
