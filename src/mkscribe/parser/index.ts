@@ -6,7 +6,6 @@ import {
 	ConditionStatement,
 	DialogueStatement,
 	DoStatement,
-	EchoStatement,
 	EnvironmentAccessor,
 	ExitExpression,
 	Expression,
@@ -15,6 +14,7 @@ import {
 	IfStatement,
 	InteractStatement,
 	LiteralExpression,
+	MacroExpression,
 	MetadataExpression,
 	OptionStatement,
 	OtherwiseStatement,
@@ -35,7 +35,7 @@ export class Parser implements ParserImplementation {
 
 	constructor(private readonly tokens: Array<Token>) {}
 
-	parse(): Array<Statement> {
+	public parse(): Array<Statement> {
 		const stmts: Array<Statement> = new Array();
 
 		while (!this.isEOF()) {
@@ -116,6 +116,24 @@ export class Parser implements ParserImplementation {
 		return false;
 	}
 
+	private retrieveArgs(tokenType: TokenType, errMessage: string): Array<Expression> {
+		const args: Array<Expression> = new Array();
+
+		while (!this.isEOF()) {
+			if (this.isType(tokenType)) {
+				this.consume(tokenType, errMessage);
+
+				break;
+			}
+
+			args.push(this.express());
+
+			this.match(TokenType.COMMA); // Optional
+		}
+
+		return args;
+	}
+
 	/** Expressions */
 
 	protected express(): Expression {
@@ -124,7 +142,11 @@ export class Parser implements ParserImplementation {
 		}
 
 		if (this.match(TokenType.ENV)) {
-			return this.accessor();
+			if (this.isType(TokenType.L_P)) {
+				return this.macro();
+			} else {
+				return this.accessor();
+			}
 		}
 
 		if (this.match(TokenType.EXIT)) {
@@ -258,47 +280,31 @@ export class Parser implements ParserImplementation {
 	}
 
 	private array(): ArrayExpression {
-		const exprs: Array<Expression> = new Array();
-
-		while (!this.isEOF()) {
-			if (this.isType(TokenType.R_BK)) {
-				this.consume(TokenType.R_BK, `Expected enclosing bracket (]) to an array expression.`);
-
-				break;
-			}
-
-			const expr = this.express();
-			exprs.push(expr);
-
-			this.match(TokenType.COMMA);
-		}
-
-		return newExpression(ExpressionType.ARRAY, { expressions: exprs });
+		return newExpression(ExpressionType.ARRAY, {
+			expressions: this.retrieveArgs(TokenType.R_BK, "Expected enclosing bracket (]) to an array expression."),
+		});
 	}
 
 	private metadata(): MetadataExpression {
-		const args: Array<Expression> = new Array();
-
-		while (!this.isEOF()) {
-			if (this.isType(TokenType.R_P)) {
-				this.consume(TokenType.R_P, `Expected enclosing parenthesis to a metadata express.`);
-
-				break;
-			}
-
-			const expr = this.express();
-			args.push(expr);
-
-			this.match(TokenType.COMMA);
-		}
-
-		return newExpression(ExpressionType.METADATA, { args });
+		return newExpression(ExpressionType.METADATA, {
+			args: this.retrieveArgs(TokenType.R_P, "Expected enclosing parenthesis to a metadata express."),
+		});
 	}
 
 	private start(): StartExpression {
-		const objective = this.consume(TokenType.IDENTIFIER, `Expected an objective identifier to start!`);
+		return newExpression(ExpressionType.START, {
+			objective: this.consume(TokenType.IDENTIFIER, `Expected an objective identifier to start!`),
+		});
+	}
 
-		return newExpression(ExpressionType.START, { objective });
+	private macro(): MacroExpression {
+		const name = this.previous();
+
+		this.consume(TokenType.L_P, "Expected an opening parenthesis for arguments in a macro.");
+
+		const args = this.retrieveArgs(TokenType.R_P, "Expected enclosing parenthesis for arguments in a macro.");
+
+		return newExpression(ExpressionType.MACRO, { name, args });
 	}
 
 	private exit(): ExitExpression {
@@ -356,10 +362,6 @@ export class Parser implements ParserImplementation {
 
 		if (this.match(TokenType.TRIGGER)) {
 			return this.trigger();
-		}
-
-		if (this.match(TokenType.ECHO)) {
-			return this.echo();
 		}
 
 		if (this.match(TokenType.SET)) {
@@ -521,10 +523,6 @@ export class Parser implements ParserImplementation {
 		const body = this.block(`Expected "{" to start the interaction's body.`);
 
 		return newStatement(StatementType.INTERACT, { identifier, body });
-	}
-
-	private echo(): EchoStatement {
-		return newStatement(StatementType.ECHO, { expr: this.express() });
 	}
 
 	private expressionStatement(): ExpressionStatement {
