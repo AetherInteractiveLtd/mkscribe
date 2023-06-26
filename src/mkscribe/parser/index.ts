@@ -271,7 +271,7 @@ export class Parser implements ParserImplementation {
 			}
 
 			case "undefined": {
-				value = undefined as never;
+				value = "undefined" as never;
 
 				break;
 			}
